@@ -9,9 +9,9 @@
  *  fn = <site>.<app>.<filename>.<functionname>
  */
 
-core.djang10.http();
+core.modules.djang10.http();
 
-core.djang10.mapper_filter();
+core.modules.djang10.mapper_filter();
     
 var match_array = [];
 var duple = null;
@@ -27,7 +27,7 @@ if (thing != null) {
 // @TODO - figure out what django really does
 
 if (duple == null) {
-    core.djang10.conf.errorPage("No invoker specified for " + request.getURI());
+    core.modules.djang10.conf.errorPage("No invoker specified for " + request.getURI());
 }
 else {
 
@@ -48,7 +48,7 @@ else {
     }
     else {
         log.djang10app("ERROR - function \"" + duple.f + "\" doesn't exist");
-        core.djang10.conf.errorPage("Programmer error : unknown function in controller for  " + request.getURI());
+        core.modules.djang10.conf.errorPage("Programmer error : unknown function in controller for  " + request.getURI());
     }
 }
 %>

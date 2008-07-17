@@ -21,7 +21,7 @@ Template.prototype.render = function(context) {
     f = this.compiledTemplate;
 
     if (f == null) {
-        f = scope.eval("core.djang10.templates.notemplatefound");
+        f = scope.eval("core.modules.djang10.templates.notemplatefound");
         f.getScope(true).print = function(s) { myBuf += s;};
         f({"template_name" : this.template_name});
         f.clearScope();

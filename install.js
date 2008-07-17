@@ -1,6 +1,5 @@
 core.core.routes();
-core.templates.djang10();
-var settings = core.djang10.conf.settings();
+var settings = core.modules.djang10.conf.settings();
 
 var log = log.djang10;
 
@@ -106,7 +105,7 @@ appdirs.forEach(function(z) {
 //URL Mapping
 if(!routes) routes = new Routes();
 //get user defined url mappings
-var urlpatterns = invokeSandboxPackage([core.djang10.conf.urls.defaults], jxp.urls, "urlpatterns");
+var urlpatterns = invokeSandboxPackage([core.modules.djang10.conf.urls.defaults], local.urls, "urlpatterns");
 
 for (p in urlpatterns) {
     var invoker = urlpatterns[p][1];

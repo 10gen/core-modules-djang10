@@ -6,8 +6,7 @@
  *  modeled after  django.template package
  */
 
-core.templates.djang10();
-core.djang10.template.template();
+core.modules.djang10.template.template();
 
 Loader = {
     get_template: function(name){

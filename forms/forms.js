@@ -1,5 +1,5 @@
-core.djang10.util.object();
-core.djang10.forms.fields();
+core.modules.djang10.util.object();
+core.modules.djang10.forms.fields();
 
 
 forms = { };
