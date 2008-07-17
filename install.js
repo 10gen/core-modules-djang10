@@ -131,7 +131,7 @@ for (p in urlpatterns) {
     
     
     //reroute the url through the mapper 
-    routes.add(urlpatterns[p][0], "~~/djang10/mapper.jxp");
+    routes.add(urlpatterns[p][0], "/~~/modules/djang10/mapper.jxp");
     
 }
 
