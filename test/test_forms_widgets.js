@@ -87,3 +87,7 @@ assert(w.render('email', '', {'class': 'special'}) == '<input class="special" ty
 w = new widgets.HiddenInput();
 assert(w.render('get_spam', false) == '<input type="hidden" name="get_spam" value="false" />');
 assert(w.render('get_spam', true) == '<input type="hidden" name="get_spam" value="true" />');
+
+/*
+    TODO write tests for the rest of the widgets.
+*/

@@ -17,13 +17,9 @@
 core.modules.djang10.util.object();
 core.modules.djang10.forms.widgets();
 
-fields = { };
+fields = {};
 
-
-var Field
-    = fields.Field
-    = function(params) {
-
+var Field = fields.Field = function(params) {
     params = {
         required: true,
         widget: null,
@@ -31,7 +27,6 @@ var Field
         initial: null,
         help_text: "",
         error_messages: {}
-
     }.merge(params || {});
 
     this.required = params.required;
@@ -46,7 +41,7 @@ var Field
         this.widget = new this.widget();
     }
     
-    //get html attributes to apply for the curretn widget
+    //get field specific html attributes to apply for the current widget
     Object.extend(this.widget.attrs, this.widget_attrs(this.widget));
     
     //get error messages
@@ -62,19 +57,20 @@ var Field
     //from arguments
     this.error_messages.extend(params.error_messages);
 };
+
 Field.prototype = {
     widget: widgets.TextInput,
     hidden_widget: widgets.HiddenInput,
     default_error_messages: {
         required: "This field is required.",
-        invalid: "This field is invalid"
+        invalid: "Enter a valid value."
     },
     
-    widget_attrs: function(widget){
+    widget_attrs: function(widget) {
         return {};
     },
     
-    clean: function(value){
+    clean: function(value) {
         if(this.required && (value == null || value == '')) 
             throw new ValidationError(this.error_messages["required"]);
         
@@ -82,11 +78,7 @@ Field.prototype = {
     }
 };
 
-
-var CharField
-    = fields.CharField
-    = function(params) {
-
+var CharField = fields.CharField = function(params) {
     params = {
         max_length: null, 
         min_length: null
@@ -98,6 +90,7 @@ var CharField
     
     Field.call(this, params);
 };
+
 CharField.prototype = {
     __proto__ : Field.prototype,
 
@@ -107,20 +100,19 @@ CharField.prototype = {
     },
     
     clean: function(value) {
+        // convert to a string
+        if (value != null)
+            value = value.toString();
+        else
+            value = '';
+        
         Field.prototype.clean.call(this, value);
         
         var value_len = value.length;
         if(this.max_length != null && value_len > this.max_length)
-            throw new ValidationError(formatMessage(default_error_messages["max_length"], this.min_length, this.max_length, value_len));
-        if(this.min_length != null && value_len < this.min_length)
-            throw new ValidationError(formatMessage(default_error_messages["min_length"], this.min_length, this.max_length, value_len));
-        
-        var formatMessage = function(msg, min, max, length) {
-            return msg
-                .replace("\\%\\(max\\)d", min)
-                .replace("\\%\\(min\\)d", max)
-                .replace("\\%\\(length\\)d", length);
-        }
+            throw new ValidationError(simplePythonFormat(this.error_messages["max_length"], {'max': this.max_length, 'length': value_len}));
+        if(this.min_length != null && value_len < this.min_length && value != '')
+            throw new ValidationError(simplePythonFormat(this.error_messages["min_length"], {'min': this.min_length, 'length': value_len}));
         
         return value;
     },
@@ -129,9 +121,7 @@ CharField.prototype = {
         var attrs = {};
         
         if(this.max_length != null) {
-            if(Object.instanceOf(widget, widgets.TextInput) 
-                || Object.instanceOf(widget, widgets.PasswordInput)) {
-
+            if(Object.instanceOf(widget, widgets.TextInput) || Object.instanceOf(widget, widgets.PasswordInput)) {
                 attrs["maxlength"] = this.max_length;
             }
         }
@@ -140,6 +130,72 @@ CharField.prototype = {
     }
 };
 
+/*
+    TODO Implement the rest of the fields
+*/
+
+/*
+    TODO Mave this stuff
+*/
+var simplePythonFormat = fields.simplePythonFormat = function (msg, vals) {
+    if (typeof(msg) != 'string') {
+        throw new FormatterError('Message must be of type string.')
+    }
+    
+    var re = /\%(?:\((\w+)\))?([\w\%])/;
+    
+    var getReplacement = function (v, code) {
+        switch (code) {
+            case "s":
+                return v.toString();
+            case "r":
+                return tojson(v).toString();
+            case "i":
+            case "d":
+                return parseInt(v).toString();
+            case "f":
+                return Number(v).toString();
+            case "%":
+                return "%"
+            default:
+                throw new FormatterError('Unexpected conversion type: ' + v)
+        }
+    };
+    
+    var arg_index = 1;
+    var named = false;
+    
+    while ((match = re.exec(msg)) != null) {
+        if (match[2] == "%")
+            arg_index --;
+
+        if (arg_index >= arguments.length)
+            throw new FormatterError('Not enough arguments to replace all conversion specifiers.');
+        
+        // named replacement    
+        if(match[1]) {
+            var repl = getReplacement(vals[match[1]], match[2]);
+            if (!repl)
+                throw new FormatterError('Could not find mapping for key: ' + match[1]);
+            named = true
+        }
+        // anonymous replacement
+        else {
+            repl = getReplacement(arguments[arg_index], match[2]);
+            arg_index++;
+        }
+        
+        msg = msg.replace(re, repl);
+    }
+    if (arg_index < arguments.length && !named)
+        throw new FormatterError('Too many arguments.');
+    
+    return msg;
+}
+
+FormatterError = function(msg) {
+    this.message = msg;
+}
 
 ValidationError = function(msg) {
     this.message = msg;

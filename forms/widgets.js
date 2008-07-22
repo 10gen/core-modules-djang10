@@ -16,7 +16,7 @@
 
 core.content.html();
 
-widgets = { };
+widgets = {};
 
 var Widget = widgets.Widget = function(attrs) {
     this.attrs = attrs || {};
@@ -107,6 +107,10 @@ HiddenInput.prototype = {
     input_type: "hidden",
     is_hidden: true
 };
+
+/*
+    TODO implement the rest of the widgets
+*/
 
 //Private Helpers -----------------------
 var flatten_attributes = function(dict) {
