@@ -35,12 +35,11 @@ var Form
     }.merge(params || {});
     
     //find all the fields
-    var fields = {};
+    this.fields = {};
     for (var key in this) {
         if (Object.instanceOf(this[key], fields.Field)) 
             fields[key] = this[key];
-    } 
-    this.fields = fields;
+    }
     
     //init instance variables
     Object.extend(this, params);

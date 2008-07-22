@@ -21,7 +21,7 @@ fields = { };
 
 
 var Field
-    = fields.Form
+    = fields.Field
     = function(params) {
 
     params = {
@@ -96,7 +96,7 @@ var CharField
     this.max_length = params.max_length;
     this.min_length = params.min_length;
     
-    Field.call(this);
+    Field.call(this, params);
 };
 CharField.prototype = {
     __proto__ : Field.prototype,

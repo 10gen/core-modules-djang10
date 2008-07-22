@@ -30,16 +30,3 @@ Object.isEmpty = function(object) {
         
     return false;  
 };
-
-Object.extend = function(parent, child) {
-    child.prototype.__proto__ = parent.prototype;
-};
-
-Object.define = function(namespace, name, cons, proto) {
-    if(namespace instanceof String)
-        namespace = scope[namespace];
-
-    cons.prototype = proto;
-    scope.getParent()[name] = cons;
-    scope[namespace] = cons;
-};
