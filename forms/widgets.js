@@ -18,20 +18,18 @@ core.content.html();
 
 widgets = { };
 
-var Widget
-    = widgets.Widget
-    = function(attrs) {
-
-        this.attrs = attrs || {};
-        this.instance = true;
+var Widget = widgets.Widget = function(attrs) {
+    this.attrs = attrs || {};
 };
+
 Widget.prototype = {
     render: function(name, value, attrs){
         throw new NotImplementedError();
     },
     
-    buildAttrs: function(extra_attrs){
-        return this.attrs.merge(extra_attrs || {});
+    build_attrs: function(extra_attrs, kwargs) {
+        var attrs = this.attrs.merge(kwargs || {});
+        return attrs.merge(extra_attrs || {});
     },
     
     value_from_datadict: function(data, files, name){
@@ -43,30 +41,24 @@ Widget.prototype = {
     }
 };
 
-
 //Input -------------------------------
-var Input
-    = widgets.Input
-    = function(attrs) {
-
-        Widget.call(this, attrs);
+var Input = widgets.Input = function(attrs) {
+    Widget.call(this, attrs);
 };
+
 Input.prototype = {
     __proto__: Widget.prototype,
     
     input_type: null,
     
     render: function(name, value, attrs){
-        var input_this = this;
+        var type = this.input_type;
         
-        value = value || '';
+        // we might want the value to be false, so check for undefined not negation
+        value = typeof(value) != 'undefined' ? value : '';
         
-        attrs = {
-            type: input_this.input_type,
-            name: name
-        }.merge(attrs || {});
+        attrs = this.build_attrs(attrs, { type: type, name: name });
         
-        attrs = this.buildAttrs(attrs);
         if (value != '' && value != null) 
             attrs["value"] = value;
         
@@ -75,12 +67,10 @@ Input.prototype = {
 };
 
 //TextInput --------------------------------------
-var TextInput
-    = widgets.TextInput
-    = function() {
-
-        Input.call(this);
+var TextInput = widgets.TextInput = function(attrs) {
+    Input.call(this, attrs);
 };
+
 TextInput.prototype = {
     __proto__ : Input.prototype,
 
@@ -88,20 +78,13 @@ TextInput.prototype = {
 };
 
 // PasswordInput -------------------
-var PasswordInput
-    = widgets.PasswordInput
-    = function(params) {
- 
-    params = {
-        attrs: null,
-        render_value: true
-
-    }.merge(params || {});
+var PasswordInput = widgets.PasswordInput = function(attrs, render_value) {
+    Input.call(this, attrs || {});
     
-    Input.call(this, params.attrs);
-    
-    this.render_value = params.render_value;
+    //render_value defaults to true
+    this.render_value = typeof(render_value) != 'undefined' ? render_value : true;
 };
+
 PasswordInput.prototype = {
     __proto__ : Input.prototype,
 
@@ -113,17 +96,11 @@ PasswordInput.prototype = {
     }
 };
 
-
 //HiddenInput ----------------------
-var HiddenInput
-    = widgets.HiddenInput
-    = function() {
-
-    Input.call(this);
-    
-    this.input_type = "hidden";
-    this.is_hidden = true;
+var HiddenInput = widgets.HiddenInput = function(attrs) {
+    Input.call(this, attrs || {});
 };
+
 HiddenInput.prototype = {
     __proto__: Input.prototype,
 
