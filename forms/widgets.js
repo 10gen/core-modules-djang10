@@ -117,7 +117,8 @@ HiddenInput.prototype = {
 };
 
 var Textarea = widgets.Textarea = function(attrs) {
-    this.attrs = {'rows': '10', 'cols': '40'}.merge(attrs || {});
+    attrs = {'rows': '10', 'cols': '40'}.merge(attrs || {});
+    Input.call(this, attrs);
 };
 
 Textarea.prototype = {
