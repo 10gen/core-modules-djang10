@@ -33,6 +33,7 @@ assert(util.simplePythonFormat('%(verb)s %(adverb)s', {verb: 'run', adverb: 'qui
 assert(util.simplePythonFormat('what about a number like %d?', 5) == 'what about a number like 5?');
 assert(util.simplePythonFormat('%d %i %s %r %f %%', 5, '24.00', 10, {hello: 'world'}, 5.01) == "5 24 10 { \"hello\" : \"world\"  }\n 5.01 %");
 assert(util.simplePythonFormat('%(adverb)s %(verb)s', {test: 'test', verb: 'run', adverb: 'quickly'}, 4) == 'quickly run');
+assert(util.simplePythonFormat('%s', '') == '');
 /*
     TODO better test coverage for simplePythonFormat
 */
