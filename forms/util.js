@@ -24,7 +24,7 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
     var re = /\%(?:\((\w+)\))?([\w\%])/;
     
     var getReplacement = function (v, code) {
-        if (!v)
+        if (v == null)
             return null;
 
         switch (code) {
