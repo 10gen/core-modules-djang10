@@ -72,7 +72,7 @@ Field.prototype = {
     
     clean: function(value) {
         if(this.required && (value == null || value == '')) 
-            throw new ValidationError(this.error_messages["required"]);
+            throw new util.ValidationError(this.error_messages["required"]);
         
         return value;
     }
@@ -110,9 +110,9 @@ CharField.prototype = {
         
         var value_len = value.length;
         if(this.max_length != null && value_len > this.max_length)
-            throw new ValidationError(simplePythonFormat(this.error_messages["max_length"], {'max': this.max_length, 'length': value_len}));
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages["max_length"], {'max': this.max_length, 'length': value_len}));
         if(this.min_length != null && value_len < this.min_length && value != '')
-            throw new ValidationError(simplePythonFormat(this.error_messages["min_length"], {'min': this.min_length, 'length': value_len}));
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages["min_length"], {'min': this.min_length, 'length': value_len}));
         
         return value;
     },
@@ -133,73 +133,5 @@ CharField.prototype = {
 /*
     TODO Implement the rest of the fields
 */
-
-/*
-    TODO Mave this stuff
-*/
-var simplePythonFormat = fields.simplePythonFormat = function (msg, vals) {
-    if (typeof(msg) != 'string') {
-        throw new FormatterError('Message must be of type string.')
-    }
-    
-    var re = /\%(?:\((\w+)\))?([\w\%])/;
-    
-    var getReplacement = function (v, code) {
-        switch (code) {
-            case "s":
-                return v.toString();
-            case "r":
-                return tojson(v).toString();
-            case "i":
-            case "d":
-                return parseInt(v).toString();
-            case "f":
-                return Number(v).toString();
-            case "%":
-                return "%"
-            default:
-                throw new FormatterError('Unexpected conversion type: ' + v)
-        }
-    };
-    
-    var arg_index = 1;
-    var named = false;
-    
-    while ((match = re.exec(msg)) != null) {
-        if (match[2] == "%")
-            arg_index --;
-
-        if (arg_index >= arguments.length)
-            throw new FormatterError('Not enough arguments to replace all conversion specifiers.');
-        
-        // named replacement    
-        if(match[1]) {
-            var repl = getReplacement(vals[match[1]], match[2]);
-            if (!repl)
-                throw new FormatterError('Could not find mapping for key: ' + match[1]);
-            named = true
-        }
-        // anonymous replacement
-        else {
-            repl = getReplacement(arguments[arg_index], match[2]);
-            arg_index++;
-        }
-        
-        msg = msg.replace(re, repl);
-    }
-    if (arg_index < arguments.length && !named)
-        throw new FormatterError('Too many arguments.');
-    
-    return msg;
-}
-
-FormatterError = function(msg) {
-    this.message = msg;
-}
-
-ValidationError = function(msg) {
-    this.message = msg;
-};
-ValidationError.NON_FIELD_ERRORS = '__all__';
 
 return fields;
