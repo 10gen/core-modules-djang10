@@ -15,6 +15,7 @@
 */
 
 core.modules.djang10.forms.widgets();
+core.content.html();
 
 /**
  * TextInput tests
@@ -87,6 +88,27 @@ assert(w.render('email', '', {'class': 'special'}) == '<input class="special" ty
 w = new widgets.HiddenInput();
 assert(w.render('get_spam', false) == '<input type="hidden" name="get_spam" value="false" />');
 assert(w.render('get_spam', true) == '<input type="hidden" name="get_spam" value="true" />');
+
+/**
+ * Textarea tests
+ */
+w = new widgets.Textarea();
+assert(w.render('msg', '') == '<textarea rows="10" cols="40" name="msg"></textarea>');
+assert(w.render('msg', None) == '<textarea rows="10" cols="40" name="msg"></textarea>');
+assert(w.render('msg', 'value') == '<textarea rows="10" cols="40" name="msg">value</textarea>');
+assert(w.render('msg', 'some "quoted" & ampersanded value') == '<textarea rows="10" cols="40" name="msg">some &quot;quoted&quot; &amp; ampersanded value</textarea>');
+// TODO This test won't work until we have the equivalent of a mark_safe function
+//assert(w.render('msg', mark_safe('pre &quot;quoted&quot; value')) == '<textarea rows="10" cols="40" name="msg">pre &quot;quoted&quot; value</textarea>');
+assert(w.render('msg', 'value', {'class': 'pretty', 'rows': 20}) == '<textarea rows="20" cols="40" name="msg" class="pretty">value</textarea>');
+
+// You can also pass 'attrs' to the constructor
+w = new widgets.Textarea({'class': 'pretty'});
+assert(w.render('msg', '') == '<textarea rows="10" cols="40" class="pretty" name="msg"></textarea>');
+assert(w.render('msg', 'example') == '<textarea rows="10" cols="40" class="pretty" name="msg">example</textarea>');
+
+// 'attrs' passed to render() get precedence over those passed to the constructor:
+w = new widgets.Textarea({'class': 'pretty'});
+assert(w.render('msg', '', {'class': 'special'}) == '<textarea rows="10" cols="40" class="special" name="msg"></textarea>');
 
 /*
     TODO write tests for the rest of the widgets.

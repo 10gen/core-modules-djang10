@@ -15,6 +15,7 @@
 */
 
 core.content.html();
+core.modules.djang10.forms.util();
 
 widgets = {};
 
@@ -24,7 +25,7 @@ var Widget = widgets.Widget = function(attrs) {
 
 Widget.prototype = {
     render: function(name, value, attrs){
-        throw new NotImplementedError();
+        throw new util.NotImplementedError();
     },
     
     build_attrs: function(extra_attrs, kwargs) {
@@ -34,6 +35,13 @@ Widget.prototype = {
     
     value_from_datadict: function(data, files, name){
         return data[name];
+    },
+    
+    _has_changed: function(initial, data) {
+        var data_value = (data == null) ? '' : data;
+        var initial_value = (initial == null) ? '' : initial;
+        
+        return (data_value != initial_value);
     },
     
     id_for_label: function(id){
@@ -62,7 +70,7 @@ Input.prototype = {
         if (value != '' && value != null) 
             attrs["value"] = value;
         
-        return '<input ' + flatten_attributes(attrs) + ' />';
+        return '<input ' + util.flatatt(attrs) + ' />';
     }
 };
 
@@ -108,28 +116,24 @@ HiddenInput.prototype = {
     is_hidden: true
 };
 
+var Textarea = widgets.Textarea = function(attrs) {
+    this.attrs = {'rows': '10', 'cols': '40'}.merge(attrs || {});
+};
+
+Textarea.prototype = {
+    __proto__: Input.prototype,
+    
+    render: function(name, value, attrs) {
+        if (value == null)
+            value = '';
+        var final_attrs = this.build_attrs(attrs, {name: name});
+        return util.simplePythonFormat('<textarea %s>%s</textarea>', 
+                util.flatatt(final_attrs), content.HTML.escape(value));
+    }
+}
+
 /*
     TODO implement the rest of the widgets
 */
-
-//Private Helpers -----------------------
-var flatten_attributes = function(dict) {
-    var buffer = "";
-    var isFirst = true;
-    
-    for(var key in dict) {
-        if(!isFirst)
-            buffer += ' ';
-        buffer += (key + '=' + '"' + content.HTML.escape(dict[key]) + '"');
-        
-        isFirst = false;
-    }
-    return buffer;
-}
-
-//TODO: move elsewhere
-NotImplementedError = function(msg) {
-    this.msg = msg;
-};
 
 return widgets;
