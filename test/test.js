@@ -16,6 +16,8 @@
 
 test = {};
 
+// Assert that this_object.callable() throws an exception. 
+// If this_object is null, uses the global object.
 var assertException = test.assertException = function(this_object, callable) {
     exception = null;
     
@@ -32,6 +34,8 @@ var assertException = test.assertException = function(this_object, callable) {
     return true;
 };
 
+// Assert that this_object.callable() throws expected_exception.
+// If this_object is null, uses the global object.
 var assertThrows = test.assertThrows = function(expected_exception, this_object, callable) {
     exception = null;
     
