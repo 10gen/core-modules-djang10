@@ -44,3 +44,25 @@ assert(util.simplePythonFormat('%s', '') == '');
 assert(util.flatatt({}) == "");
 assert(util.flatatt({'id': "header"}) == 'id="header"');
 assert(util.flatatt({"class": "news", "title": "Read this"}) == 'class="news" title="Read this"');
+
+/**
+ * ErrorList tests
+ */
+e = new util.ErrorList();
+assert(e.as_ul() == '');
+assert(e.as_text() == '');
+
+e = new util.ErrorList([]);
+assert(e.as_ul() == '');
+assert(e.as_text() == '');
+
+test.assertThrows(new util.Error('Creating ErrorList from non-Array.'), {}, util.ErrorList, {});
+test.assertThrows(new util.Error('Creating ErrorList from non-Array.'), {}, util.ErrorList, 10);
+
+e = new util.ErrorList(['an error']);
+assert(e.as_ul() == '<ul class="errorlist"><li>an error</li></ul>');
+assert(e.as_text() == '* an error\n');
+
+e = new util.ErrorList(['an error', 'another']);
+assert(e.as_ul() == '<ul class="errorlist"><li>an error</li><li>another</li></ul>');
+assert(e.as_text() == '* an error\n* another\n');

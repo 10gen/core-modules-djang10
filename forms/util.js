@@ -88,17 +88,51 @@ var flatatt = util.flatatt = function(dict) {
         isFirst = false;
     }
     return buffer;
-}
+};
+
+var ErrorList = util.ErrorList = function(list) {
+    if (typeof(list) == 'undefined') {
+        list = [];
+    }
+    if (typeof(list) != 'object' || list.constructor != Array) {
+        throw new Error("Creating ErrorList from non-Array.");
+    }
+    this.list = list;
+};
+
+ErrorList.prototype = {
+    as_ul: function() {
+        if (this.list.length == 0)
+            return '';
+        var inner = '';
+        for (var i = 0; i < this.list.length; i++)
+            inner += '<li>' + this.list[i] + '</li>';
+        return '<ul class="errorlist">' + inner + '</ul>';
+    },
+    
+    as_text: function() {
+        if (this.list.length == 0)
+            return '';
+        var out = '';
+        for (var i = 0; i < this.list.length; i++)
+            out += '* ' + this.list[i] + '\n';
+        return out;
+    }
+};
 
 var NotImplementedError = util.NotImplementedError = function(msg) {
-    this.message = msg;
+    Error.call(this, msg);
 };
 
 var FormatterError = util.FormatterError = function(msg) {
-    this.message = msg;
+    Error.call(this, msg);
 }
 
 var ValidationError = util.ValidationError = function(msg) {
+    Error.call(this, msg);
+};
+
+var Error = util.Error = function(msg) {
     this.message = msg;
 };
 
