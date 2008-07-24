@@ -173,13 +173,21 @@ var FormatterError = util.FormatterError = function(msg) {
 }
 
 var ValidationError = util.ValidationError = function(msg) {
-    Error.call(this, msg);
+    if (typeof(msg) != 'object' || msg.constructor != Array)
+        Error.call(this, new ErrorList([msg]));
+    else
+        Error.call(this, new ErrorList(msg));
 };
+ValidationError.NON_FIELD_ERRORS = '__all__';
 
 var Error = util.Error = function(msg) {
     this.message = msg;
 };
 
-ValidationError.NON_FIELD_ERRORS = '__all__';
+Error.prototype = {
+    toString: function() {
+        return this.message.toString();
+    }
+};
 
 return util;

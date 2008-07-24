@@ -94,3 +94,16 @@ e = new util.ErrorDict({hello: "world", other: {test: "test", obj: "obj", toStri
 assert(e.as_ul() == '<ul class="errorlist"><li>helloworld</li><li>other stuff</li></ul>');
 assert(e.as_text() == '* hello\n* other\n  * test\n  * obj\n  * \nfunction () {\n    return \" stuff\";\n}\n\n');
 assert("" + e == e.as_ul());
+
+/**
+ * ValidationError tests
+ */
+
+assert("" + new util.ValidationError("There was an error.").message == '<ul class="errorlist"><li>There was an error.</li></ul>');
+assert("" + new util.ValidationError(["Error one.", "Error two."]).message == '<ul class="errorlist"><li>Error one.</li><li>Error two.</li></ul>');
+
+var VeryBadError = function() {};
+VeryBadError.prototype.toString = function() {return "A very bad error.";};
+
+assert("" + new util.ValidationError(new VeryBadError()).message == '<ul class="errorlist"><li>A very bad error.</li></ul>');
+assert("" + new util.ValidationError({hello: " world"}).message == '<ul class="errorlist"><li>Object</li></ul>');
