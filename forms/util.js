@@ -161,6 +161,22 @@ ErrorList.prototype = {
         for (var i = 0; i < this.list.length; i++)
             out += '* ' + this.list[i] + '\n';
         return out;
+    },
+    
+    extend: function(list) {
+        if (typeof(list) == 'undefined' || typeof(list) != 'object') {
+            return;
+        }
+        if (list.constructor == Array) {
+            for (var i = 0; i < list.length; i++) {
+                this.list.push(list[i]);
+            }
+        }
+        if (list.constructor == ErrorList) {
+            for (var i = 0; i < list.list.length; i++) {
+                this.list.push(list.list[i]);
+            }
+        }
     }
 };
 

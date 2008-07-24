@@ -55,6 +55,12 @@ assert(e.as_text() == '');
 e = new util.ErrorList([]);
 assert(e.as_ul() == '');
 assert(e.as_text() == '');
+e.extend(['an error']);
+assert(e.as_ul() == '<ul class="errorlist"><li>an error</li></ul>');
+assert(e.as_text() == '* an error\n');
+e.extend(new util.ErrorList(['another', 'and another']));
+assert(e.as_ul() == '<ul class="errorlist"><li>an error</li><li>another</li><li>and another</li></ul>');
+assert(e.as_text() == '* an error\n* another\n* and another\n');
 
 test.assertThrows(new util.Error('Attempting to create ErrorList from non-Array.'), {}, util.ErrorList, {});
 test.assertThrows(new util.Error('Attempting to create ErrorList from non-Array.'), {}, util.ErrorList, 10);
