@@ -133,6 +133,30 @@ Textarea.prototype = {
     }
 }
 
+var MultipleHiddenInput = widgets.MultipleHiddenInput = function(attrs, choices) {
+    this.choices = choices;
+    HiddenInput.call(this, attrs);
+};
+
+MultipleHiddenInput.prototype = {
+    __proto__: HiddenInput.prototype,
+    
+    render: function(name, value, attrs, choices) {
+        if (value == null)
+            value = [];
+        var final_attrs = this.build_attrs(attrs, {type: this.input_type, name: name});
+        var out = '';
+        for (i = 0; i < value.length; i++) {
+            out += '<input ' + util.flatatt(final_attrs.merge({value: value[i]})) + ' />\n';
+        }
+        return out;
+    }
+    
+    /*
+        TODO Do I need to override value_from_datadict here?
+    */
+}
+
 /*
     TODO implement the rest of the widgets
 */

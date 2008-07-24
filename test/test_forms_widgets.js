@@ -110,6 +110,24 @@ assert(w.render('msg', 'example') == '<textarea rows="10" cols="40" class="prett
 w = new widgets.Textarea({'class': 'pretty'});
 assert(w.render('msg', '', {'class': 'special'}) == '<textarea rows="10" cols="40" class="special" name="msg"></textarea>');
 
+/**
+ * MultipleHidden tests
+ */
+w = new widgets.MultipleHiddenInput();
+assert(w.render('email', []) == '');
+assert(w.render('email', null) == '');
+assert(w.render('email', ['test@example.com']) == '<input type="hidden" name="email" value="test@example.com" />\n');
+assert(w.render('email', ['some "quoted" & ampersanded value']) == '<input type="hidden" name="email" value="some &quot;quoted&quot; &amp; ampersanded value" />\n');
+assert(w.render('email', ['test@example.com', 'foo@example.com']) == '<input type="hidden" name="email" value="test@example.com" />\n<input type="hidden" name="email" value="foo@example.com" />\n');
+assert(w.render('email', ['test@example.com'], {'class': 'fun'}) == '<input type="hidden" name="email" class="fun" value="test@example.com" />\n');
+assert(w.render('email', ['test@example.com', 'foo@example.com'], {'class': 'fun'}) == '<input type="hidden" name="email" class="fun" value="test@example.com" />\n<input type="hidden" name="email" class="fun" value="foo@example.com" />\n');
+
+w = new widgets.MultipleHiddenInput({'class': 'fun'})
+assert(w.render('email', []) == '');
+assert(w.render('email', ['test@example.com']) == '<input class="fun" type="hidden" name="email" value="test@example.com" />\n');
+assert(w.render('email', ['test@example.com', 'foo@example.com']) == '<input class="fun" type="hidden" name="email" value="test@example.com" />\n<input class="fun" type="hidden" name="email" value="foo@example.com" />\n');
+assert(w.render('email', ['test@example.com'], {'class': 'special'}) == '<input class="special" type="hidden" name="email" value="test@example.com" />\n')
+
 /*
     TODO write tests for the rest of the widgets.
 */
