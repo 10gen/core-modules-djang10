@@ -16,10 +16,11 @@
 
 core.modules.djang10.forms.forms();
 core.modules.djang10.forms.fields();
+core.modules.djang10.forms.widgets();
 core.modules.djang10.test.test();
 core.modules.djang10.forms.util();
 
-Person = function(params) {
+var Person = function(params) {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
     
@@ -62,3 +63,65 @@ assert(p.toString() == '<tr><th><label for="id_first_name">First name:</label></
 assert(p.toString() == p.as_table());
 assert(p.as_ul() == '<li><label for="id_first_name">First name:</label> <input type="text" name="first_name" id="id_first_name" /></li>\n<li><label for="id_last_name">Last name:</label> <input type="text" name="last_name" id="id_last_name" /></li>\n');
 assert(p.as_p() == '<p><label for="id_first_name">First name:</label> <input type="text" name="first_name" id="id_first_name" /></p>\n<p><label for="id_last_name">Last name:</label> <input type="text" name="last_name" id="id_last_name" /></p>\n');
+
+var p = new Person({data: {'last_name': 'Lennon'}});
+assert(p.errors.dict['first_name'].toString() == '<ul class="errorlist"><li>This field is required.</li></ul>');
+assert(!p.is_valid());
+assert(p.errors.as_ul() == '<ul class="errorlist"><li>first_name<ul class="errorlist"><li>This field is required.</li></ul></li></ul>');
+assert(p.errors.as_text() == '* first_name\n  * This field is required.\n');
+assert(typeof(p.cleaned_data) == 'undefined');
+assert(p.get_bound_field('first_name').errors.toString() == '<ul class="errorlist"><li>This field is required.</li></ul>');
+assert(p.get_bound_field('first_name').errors.as_text() == '* This field is required.\n');
+
+var p = new Person();
+assert(p.get_bound_field('first_name').toString() == '<input type="text" name="first_name" id="id_first_name" />');
+assert(p.get_bound_field('last_name').toString() == '<input type="text" name="last_name" id="id_last_name" />');
+
+var data = {'first_name': 'John', 'extra': 'hello', 'last_name': 'Lennon'};
+var p = new Person({data: data});
+assert(p.is_valid());
+assert(p.cleaned_data.first_name == 'John');
+assert(p.cleaned_data.last_name == 'Lennon');
+
+var OptionalPersonForm = function(params) {
+    this.first_name = new fields.CharField();
+    this.last_name = new fields.CharField();
+    this.nick_name = new fields.CharField({required: false});
+    
+    forms.Form.call(this, params);
+};
+
+OptionalPersonForm.prototype.__proto__ = forms.Form.prototype;
+
+var data = {'first_name': 'John', 'last_name': 'Lennon'};
+var f = new OptionalPersonForm({data: data});
+assert(f.is_valid());
+assert(f.cleaned_data['nick_name'] == '');
+assert(f.cleaned_data['first_name'] == 'John');
+assert(f.cleaned_data['last_name'] == 'Lennon');
+
+var p = new Person({auto_id: '%s_id'});
+assert(p.as_table() == '<tr><th><label for="first_name_id">First name:</label></th><td><input type="text" name="first_name" id="first_name_id" /></td></tr>\n<tr><th><label for="last_name_id">Last name:</label></th><td><input type="text" name="last_name" id="last_name_id" /></td></tr>\n');
+assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input type="text" name="first_name" id="first_name_id" /></li>\n<li><label for="last_name_id">Last name:</label> <input type="text" name="last_name" id="last_name_id" /></li>\n');
+assert(p.as_p() == '<p><label for="first_name_id">First name:</label> <input type="text" name="first_name" id="first_name_id" /></p>\n<p><label for="last_name_id">Last name:</label> <input type="text" name="last_name" id="last_name_id" /></p>\n');
+
+var p = new Person({auto_id: true});
+assert(p.as_ul() == '<li><label for="first_name">First name:</label> <input type="text" name="first_name" id="first_name" /></li>\n<li><label for="last_name">Last name:</label> <input type="text" name="last_name" id="last_name" /></li>\n');
+
+var p = new Person({auto_id: false});
+assert(p.as_ul() == '<li>First name: <input type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n');
+
+PersonNew = function(params) {
+    this.first_name = new fields.CharField({widget: new widgets.TextInput({'id': 'first_name_id'})});
+    this.last_name = new fields.CharField();
+    
+    forms.Form.call(this, params);
+};
+
+PersonNew.prototype.__proto__ = forms.Form.prototype;
+
+var p = new PersonNew({auto_id: false});
+assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input id="first_name_id" type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n');
+
+var p = new PersonNew({auto_id: true});
+assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input id="first_name_id" type="text" name="first_name" /></li>\n<li><label for="last_name">Last name:</label> <input type="text" name="last_name" id="last_name" /></li>\n');
