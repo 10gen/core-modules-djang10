@@ -90,17 +90,61 @@ var flatatt = util.flatatt = function(dict) {
     return buffer;
 };
 
+var ErrorDict = util.ErrorDict = function(dict) {
+    if (typeof(dict) == 'undefined') {
+        dict = {};
+    }
+    if (typeof(dict) != 'object') {
+        throw new Error("Attempting to create ErrorDict from non-mapping type.");
+    }
+    this.dict = dict;
+};
+
+ErrorDict.prototype = {
+    toString: function() {
+        return this.as_ul();
+    },
+    
+    as_ul: function() {
+        if (this.dict.keySet().length == 0)
+            return '';
+        var inner = '';
+        for (var k in this.dict) {
+            inner += '<li>' + k + this.dict[k] + '</li>';
+        }
+        return '<ul class="errorlist">' + inner + '</ul>';
+    },
+    
+    as_text: function() {
+        if (this.dict.keySet().length == 0)
+            return '';
+        var out = '';
+        for (var k in this.dict) {
+            var inner = '';
+            for (var j in this.dict[k]) {
+                inner += '  * ' + this.dict[k][j] + '\n';
+            }
+            out += '* ' + k + '\n' + inner;
+        }
+        return out;
+    }
+};
+
 var ErrorList = util.ErrorList = function(list) {
     if (typeof(list) == 'undefined') {
         list = [];
     }
     if (typeof(list) != 'object' || list.constructor != Array) {
-        throw new Error("Creating ErrorList from non-Array.");
+        throw new Error("Attempting to create ErrorList from non-Array.");
     }
     this.list = list;
 };
 
 ErrorList.prototype = {
+    toString: function() {
+        return this.as_ul();
+    },
+    
     as_ul: function() {
         if (this.list.length == 0)
             return '';
