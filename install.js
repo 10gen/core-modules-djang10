@@ -147,7 +147,9 @@ for (p in urlpatterns) {
     
     
     //reroute the url through the mapper 
-    routes.add(urlpatterns[p][0], "/~~/modules/djang10/mapper.jxp");
+    //XXX: the user submitted regex's don't match the first slash, so the replacement can'tstart with a slash
+    //routes.add(urlpatterns[p][0], "/~~/modules/djang10/mapper.jxp");
+    routes.add(urlpatterns[p][0], "~~/modules/djang10/mapper.jxp");
     
 }
 
