@@ -57,7 +57,7 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
         // named replacement    
         if(match[1]) {
             var repl = getReplacement(vals[match[1]], match[2]);
-            if (!repl)
+            if (repl == null)
                 throw new FormatterError('Could not find mapping for key: ' + match[1]);
             named = true
         }
