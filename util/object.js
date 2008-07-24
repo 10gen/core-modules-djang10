@@ -26,7 +26,7 @@ Object.instanceOf = function(object, constructor){
 
 Object.isEmpty = function(object) {
     for(var p in object)
-        return true;
+        return false;
         
-    return false;  
+    return true;  
 };
