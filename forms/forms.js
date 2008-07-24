@@ -22,8 +22,8 @@ forms = {};
 
 var Form = forms.Form = function(params) {
     params = {
-        data: {},
-        files: {},
+        data: null,
+        files: null,
         auto_id: "id_%s",
         prefix: null,
         initial: {},
@@ -39,20 +39,30 @@ var Form = forms.Form = function(params) {
     this.fields = {};
     for (var key in this) {
         if (Object.instanceOf(this[key], fields.Field)) 
-            fields[key] = this[key];
+            this.fields[key] = this[key];
     }
     
     //init instance variables
     Object.extend(this, params);
 
-    this.is_bound = !Object.isEmpty(params.data) || !Object.isEmpty(params.files);
+    this.is_bound = (params.data != null) || (params.files != null);
 };
 
 Form.NON_FIELD_ERRORS = "__NON_FIELD_ERRORS_KEY__";
 
 Form.prototype = {
+    toString: function() {
+        return this.as_table();
+    },
+    
+    get_bound_field: function(name) {
+        if(typeof(this.fields[name]) == "undefined")
+            throw new util.Error("Field " + name + " not found in Form.");
+        return new BoundField(this, this.fields[name], name);
+    },
+    
     is_valid: function() {
-        return this.is_bound && Object.isEmpty(this.errors);
+        return this.is_bound && Object.isEmpty(this.errors.dict);
     },
     
     add_prefix: function(field_name) {
@@ -116,7 +126,9 @@ Form.prototype = {
             }
             if (output.length) {
                 var last_row = output.pop();
-                output.push(last_row.substring(0, last_row.length - row_ender.length) + str_hidden + row_ender);
+                output.push(
+                    last_row.substring(0, last_row.length - row_ender.length) + str_hidden + row_ender
+                );
             }
             else {
                 output.push(str_hidden);
@@ -129,28 +141,51 @@ Form.prototype = {
         return rows;
     },
     
+    as_table: function() {
+        return this._html_output('<tr><th>%(label)s</th><td>%(errors)s%(field)s%(help_text)s</td></tr>',
+                '<tr><td colspan="2">%s</td></tr>', '</td></tr>', '<br />%s', false);
+    },
+    
+    as_ul: function() {
+        return this._html_output('<li>%(errors)s%(label)s %(field)s%(help_text)s</li>', 
+                '<li>%s</li>', '<li>', '%s', false);
+    },
+    
+    as_p: function() {
+        return this._html_output('<p>%(label)s %(field)s%(help_text)s</p>', 
+                '%s', '</p>', ' %s', true);
+    },
+    
     non_field_errors: function() {
-        return this.errors[this.NON_FIELD_ERRORS] || new this.error_class();
+        return this.errors.dict[this.NON_FIELD_ERRORS] || new this.error_class();
     },
     
     full_clean: function() {
-        this._errors = {};
+        this._errors = new util.ErrorDict();
+        
+        // short circuit if the form isn't bound
+        if (!this.is_bound)
+            return;
         this.cleaned_data = {};
         
-        if(!this.is_bound)
+        if (this.empty_permitted && !this.has_changed())
             return;
         
         //process all the fields
-        for(var fieldKey in this.fields) {
-            var field = this.fields[fieldKey];
+        for(var name in this.fields) {
+            var field = this.fields[name];
             
+            var value = field.widget.value_from_datadict(this.data, this.files, this.add_prefix(name));
             try {
-                var value = field.widget.value_from_datadict(this.data, this.files, fieldKey);
-            
                 //TODO: special case FileField
-                this.cleaned_data[fieldKey] = value;
-            } catch(e if Object.instanceOf(e, ValidationError)) {
-                this._errors[fName] = e.message;
+                
+                value = field.clean(value);
+                value = this['clean_' + name] || value;
+                this.cleaned_data[name] = value;
+            } catch(e if Object.instanceOf(e, util.ValidationError)) {
+                this._errors.dict[name] = e.message;
+                if (this.cleaned_data && typeof(this.cleaned_data[name]) != 'undefined')
+                    delete this.cleaned_data[name];
             }
         }
         
@@ -158,16 +193,29 @@ Form.prototype = {
         try {
             this.cleaned_data = this.clean();
         } catch(e if Object.instanceOf(e, ValidationError)) {
-            this._errors[ValidationError.NON_FIELD_ERRORS] = e.message;
+            this._errors.dict[ValidationError.NON_FIELD_ERRORS] = e.message;
         }
         
-        if(!Object.isEmpty(this._errors)) {
+        if(!Object.isEmpty(this._errors.dict)) {
             this.cleaned_data = null;
         }
     },
     
     clean: function() {
         return this.cleaned_data;
+    },
+    
+    has_changed: function() {
+        return (this.changed_data) ? true : false;
+    },
+    
+    is_multipart: function() {
+        for (var i in this.fields) {
+            if (this.fields[i].widget.needs_multipart_form) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
@@ -248,18 +296,19 @@ BoundField.prototype = {
         var id = widget.attrs.id || this.auto_id;
         if (id) {
             attrs = (attrs) ? util.flatatt(attrs) : '';
-            contents = util.simplePythonFormat('<label for="%s"%s>%s</label', widget.id_for_label(id), attrs, contents);
+            contents = util.simplePythonFormat('<label for="%s"%s>%s</label>', 
+                    widget.id_for_label(id), attrs, contents);
         }
         return contents;
     }
 };
 
 BoundField.prototype.__defineGetter__("errors", function() {
-    return this.form.errors[this.name] || new this.form.error_class();
+    return this.form.errors.dict[this.name] || new this.form.error_class();
 });
 
 BoundField.prototype.__defineGetter__("data", function() {
-    return this.field.widget.value_from_datadict(this.form.data, this.form.files, this.html_names);
+    return this.field.widget.value_from_datadict(this.form.data, this.form.files, this.html_name);
 });
 
 BoundField.prototype.__defineGetter__("is_hidden", function() {
