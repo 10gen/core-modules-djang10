@@ -134,10 +134,18 @@ var ErrorList = util.ErrorList = function(list) {
     if (typeof(list) == 'undefined') {
         list = [];
     }
-    if (typeof(list) != 'object' || list.constructor != Array) {
+    if (typeof(list) != 'object') {
         throw new Error("Attempting to create ErrorList from non-Array.");
     }
-    this.list = list;
+    if (list.constructor == Array) {
+        this.list = list;
+        return;
+    }
+    if (list.constructor == util.ErrorList) {
+        this.list = list.list;
+        return;
+    }
+    throw new Error("Attempting to create ErrorList from non-Array.");
 };
 
 ErrorList.prototype = {
@@ -165,7 +173,7 @@ ErrorList.prototype = {
     
     extend: function(list) {
         if (typeof(list) == 'undefined' || typeof(list) != 'object') {
-            return;
+            throw new Error("Invalid argument to extend.");
         }
         if (list.constructor == Array) {
             for (var i = 0; i < list.length; i++) {

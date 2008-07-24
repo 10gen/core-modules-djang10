@@ -74,6 +74,10 @@ e = new util.ErrorList(['an error', 'another']);
 assert(e.as_ul() == '<ul class="errorlist"><li>an error</li><li>another</li></ul>');
 assert(e.as_text() == '* an error\n* another\n');
 
+e = new util.ErrorList(new util.ErrorList(['an error', 'another']));
+assert(e.as_ul() == '<ul class="errorlist"><li>an error</li><li>another</li></ul>');
+assert(e.as_text() == '* an error\n* another\n');
+
 /**
  * ErrorDict tests
  */
