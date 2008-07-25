@@ -118,11 +118,11 @@ HiddenInput.prototype = {
 
 var Textarea = widgets.Textarea = function(attrs) {
     attrs = {'rows': '10', 'cols': '40'}.merge(attrs || {});
-    Input.call(this, attrs);
+    Widget.call(this, attrs);
 };
 
 Textarea.prototype = {
-    __proto__: Input.prototype,
+    __proto__: Widget.prototype,
     
     render: function(name, value, attrs) {
         if (value == null)
@@ -181,6 +181,53 @@ FileInput.prototype = {
         return true;
     }
 };
+
+var CheckboxInput = widgets.CheckboxInput = function(attrs, check_test) {
+    Widget.call(this, attrs || {});
+    
+    // Use passed in value or else just identity.
+    this.check_test = check_test || function(x) {return x;};
+};
+
+CheckboxInput.prototype = {
+    __proto__: Widget.prototype,
+    
+    render: function(name, value, attrs) {
+        var final_attrs = this.build_attrs(attrs || {}, {type: 'checkbox', name: name});
+        
+        var result;
+        try {
+            result = this.check_test(value);
+        }
+        catch(e) {
+            result = false;
+        } 
+        if (result) {
+            final_attrs['checked'] = 'checked';
+        }
+        if (value !== '' && value !== true && value !== false && value !== null) {
+            final_attrs['value'] = value.toString();
+        }
+        return "<input " + util.flatatt(final_attrs) + " />";
+    },
+    
+    value_from_datadict: function(data, files, name) {
+        if (typeof(data[name]) == "undefined") {
+            return false;
+        }
+        return Widget.value_from_datadict.call(this, data, files, name);
+    },
+    
+    _has_changed: function(initial, data) {
+        initial = (initial == null || initial == '') ? false : initial;
+        data = (data == null || data == '') ? false : data;
+        
+        // TODO this is a weird special case of python bool() function. there are probably more of these.
+        initial = (initial == "on") ? true : initial;
+        data = (data == "on") ? true : data;
+        return initial != data;
+    }
+}
 
 /*
     TODO implement the rest of the widgets

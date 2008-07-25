@@ -165,3 +165,54 @@ assert(w._has_changed('resume.txt', null) == false);
 // # A file was uploaded and there is initial data (file identity is not dealt
 // # with here)
 assert(w._has_changed('resume.txt', {'filename': 'resume.txt', 'content': 'My resume'}) == true);
+
+// # CheckboxInput Widget ########################################################
+
+var w = new widgets.CheckboxInput();
+assert(w.render('is_cool', '') == '<input type="checkbox" name="is_cool" />');
+assert(w.render('is_cool', null) == '<input type="checkbox" name="is_cool" />');
+assert(w.render('is_cool', false) == '<input type="checkbox" name="is_cool" />');
+assert(w.render('is_cool', true) == '<input type="checkbox" name="is_cool" checked="checked" />');
+
+// Using any value that's not in ('', null, false, true) will check the checkbox
+// and set the 'value' attribute.
+assert(w.render('is_cool', 'foo') == '<input type="checkbox" name="is_cool" checked="checked" value="foo" />');
+
+assert(w.render('is_cool', false, {'class': 'pretty'}) == '<input type="checkbox" name="is_cool" class="pretty" />');
+
+// You can also pass 'attrs' to the constructor:
+var w = new widgets.CheckboxInput({'class': 'pretty'});
+assert(w.render('is_cool', '') == '<input class="pretty" type="checkbox" name="is_cool" />');
+
+var w = new widgets.CheckboxInput({'class': 'pretty'});
+assert(w.render('is_cool', '', {'class': 'special'}) == '<input class="special" type="checkbox" name="is_cool" />');
+
+// You can pass 'check_test' to the constructor. This is a callable that takes the
+// value and returns true if the box should be checked.
+var w = new widgets.CheckboxInput({}, function(value) {return value.indexOf("hello") == 0;});
+assert(w.render('greeting', '') == '<input type="checkbox" name="greeting" />');
+assert(w.render('greeting', 'hello') == '<input type="checkbox" name="greeting" checked="checked" value="hello" />');
+assert(w.render('greeting', 'hello there') == '<input type="checkbox" name="greeting" checked="checked" value="hello there" />');
+assert(w.render('greeting', 'hello & goodbye') == '<input type="checkbox" name="greeting" checked="checked" value="hello &amp; goodbye" />');
+
+// A subtlety: If the 'check_test' argument cannot handle a value and raises any
+// exception during its __call__, then the exception will be swallowed and the box
+// will not be checked. In this example, the 'check_test' assumes the value has a
+// startswith() method, which fails for the values true, false and null.
+assert(w.render('greeting', true) == '<input type="checkbox" name="greeting" />');
+assert(w.render('greeting', false) == '<input type="checkbox" name="greeting" />');
+assert(w.render('greeting', null) == '<input type="checkbox" name="greeting" />');
+
+// The CheckboxInput widget will return false if the key is not found in the data
+// dictionary (because HTML form submission doesn't send any result for unchecked
+// checkboxes).
+assert(w.value_from_datadict({}, {}, 'testing') == false);
+
+assert(w._has_changed(null, null) == false);
+assert(w._has_changed(null, '') == false);
+assert(w._has_changed('', null) == false);
+assert(w._has_changed('', '') == false);
+assert(w._has_changed(false, 'on') == true);
+assert(w._has_changed(true, 'on') == false);
+assert(w._has_changed(true, '') == true);
+
