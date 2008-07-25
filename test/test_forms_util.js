@@ -18,6 +18,18 @@ core.modules.djang10.forms.util();
 core.modules.djang10.test.test();
 
 /**
+ * bool tests
+ */
+assert(util.bool() === false);
+assert(util.bool(null) === false);
+assert(util.bool('') === false);
+assert(util.bool(0) === false);
+assert(util.bool(false) === false);
+assert(util.bool(10) === true);
+assert(util.bool(-1) === true);
+assert(util.bool("hello") === true);
+
+/**
  * simplePythonFormat tests
  */
 test.assertThrows(new util.FormatterError('Message must be of type string.'), null, util.simplePythonFormat, null);

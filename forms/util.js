@@ -16,6 +16,13 @@
 
 util = {};
 
+// An imitation of the python built-in bool()
+var bool = util.bool = function(x) {
+    if (!x)
+        return false;
+    return true;
+};
+
 var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
     if (typeof(msg) != 'string') {
         throw new FormatterError('Message must be of type string.');

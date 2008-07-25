@@ -219,13 +219,7 @@ CheckboxInput.prototype = {
     },
     
     _has_changed: function(initial, data) {
-        initial = (initial == null || initial == '') ? false : initial;
-        data = (data == null || data == '') ? false : data;
-        
-        // TODO this is a weird special case of python bool() function. there are probably more of these.
-        initial = (initial == "on") ? true : initial;
-        data = (data == "on") ? true : data;
-        return initial != data;
+        return util.bool(initial) != util.bool(data);
     }
 };
 
@@ -280,6 +274,51 @@ Select.prototype = {
         return output;
     }
 };
+
+var NullBooleanSelect = widgets.NullBooleanSelect = function(attrs) {
+    var choices = {'1': 'Unknown', '2': 'Yes', '3': 'No'};
+    Select.call(this, attrs || {}, choices);
+};
+
+NullBooleanSelect.prototype = {
+    __proto__: Select.prototype,
+    
+    render: function(name, value, attrs, choices) {
+        switch (value) {
+            case true:
+            case '2':
+                value = '2';
+                break;
+            case false:
+            case '3':
+                value = '3';
+                break;
+            default:
+                value = '1';
+                break;
+        }
+        return Select.render.call(this, name, value, attrs || null, choices || {});
+    },
+    
+    value_from_datadict: function(data, files, name) {
+        var value = data[name];
+        
+        switch (value) {
+            case true:
+            case '2':
+                return '2';
+            case false:
+            case '3':
+                return '3';
+            default:
+                return '1';
+        }
+    },
+    
+    _has_changed: function(initial, data) {
+        return util.bool(initial) != util.bool(data);
+    }
+}
 
 /*
     TODO implement the rest of the widgets

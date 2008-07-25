@@ -297,3 +297,12 @@ w.choices = {'outer1': 'Outer 1', 'Group "1"': {'inner1': 'Inner 1', 'inner2': '
 assert(w.render('nestchoice', null).toString() == '<select name="nestchoice">\n<option value="outer1">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
 assert(w.render('nestchoice', 'outer1').toString() == '<select name="nestchoice">\n<option value="outer1" selected="selected">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
 assert(w.render('nestchoice', 'inner1').toString() == '<select name="nestchoice">\n<option value="outer1">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1" selected="selected">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
+
+// # NullBooleanSelect Widget ####################################################
+
+var w = new widgets.NullBooleanSelect();
+assert(w.render('is_cool', true).toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
+assert(w.render('is_cool', false).toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
+assert(w.render('is_cool', null).toString() == '<select name="is_cool">\n<option value="1" selected="selected">Unknown</option>\n<option value="2">Yes</option>\n<option value="3">No</option>\n</select>');
+assert(w.render('is_cool', '2').toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
+assert(w.render('is_cool', '3').toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
