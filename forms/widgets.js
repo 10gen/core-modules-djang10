@@ -151,10 +151,6 @@ MultipleHiddenInput.prototype = {
         }
         return out;
     }
-    
-    /*
-        TODO Do we need to override value_from_datadict here (django does but it seems pointless)?
-    */
 };
 
 var FileInput = widgets.FileInput = function(attrs) {
@@ -225,7 +221,6 @@ CheckboxInput.prototype = {
 
 var Select = widgets.Select = function(attrs, choices) {
     Widget.call(this, attrs || {});
-    
     this.choices = choices || {};
 };
 
@@ -317,6 +312,41 @@ NullBooleanSelect.prototype = {
     
     _has_changed: function(initial, data) {
         return util.bool(initial) != util.bool(data);
+    }
+};
+
+var SelectMultiple = widgets.SelectMultiple = function(attrs, choices) {
+    Select.call(this, attrs, choices);
+};
+
+SelectMultiple.prototype = {
+    __proto__: Select.prototype,
+    
+    render: function(name, value, attrs, choices) {
+        if (value == null)
+            value = [];
+        var final_attrs = this.build_attrs(attrs, {name: name});
+        var output = '<select multiple="multiple" ' + util.flatatt(final_attrs) + '>\n';
+        var options = this.render_options(choices || {}, value);
+        if (options)
+            output += options;
+        output += '</select>';
+        return output;
+    },
+    
+    _has_changed: function(initial, data) {
+        if (initial == null)
+            initial = [];
+        if (data == null)
+            data = [];
+        if (initial.length != data.length)
+            return true;
+        for (var i in initial) {
+            if (initial[i] != data[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

@@ -306,3 +306,62 @@ assert(w.render('is_cool', false).toString() == '<select name="is_cool">\n<optio
 assert(w.render('is_cool', null).toString() == '<select name="is_cool">\n<option value="1" selected="selected">Unknown</option>\n<option value="2">Yes</option>\n<option value="3">No</option>\n</select>');
 assert(w.render('is_cool', '2').toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
 assert(w.render('is_cool', '3').toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
+
+// # SelectMultiple Widget #######################################################
+
+var choices = {'J': 'John', 'P': 'Paul', 'G': 'George', 'R': 'Ringo'};
+
+var w = new widgets.SelectMultiple();
+assert(w.render('beatles', ['J'], {}, choices).toString() == '<select multiple="multiple" name="beatles">\n<option value="J" selected="selected">John</option>\n<option value="P">Paul</option>\n<option value="G">George</option>\n<option value="R">Ringo</option>\n</select>');
+assert(w.render('beatles', ['J', 'P'], {}, choices).toString() == '<select multiple="multiple" name="beatles">\n<option value="J" selected="selected">John</option>\n<option value="P" selected="selected">Paul</option>\n<option value="G">George</option>\n<option value="R">Ringo</option>\n</select>');
+assert(w.render('beatles', ['J', 'P', 'R'], {}, choices).toString() == '<select multiple="multiple" name="beatles">\n<option value="J" selected="selected">John</option>\n<option value="P" selected="selected">Paul</option>\n<option value="G">George</option>\n<option value="R" selected="selected">Ringo</option>\n</select>');
+
+// If the value is null, none of the options are selected:
+assert(w.render('beatles', null, {}, choices).toString() == '<select multiple="multiple" name="beatles">\n<option value="J">John</option>\n<option value="P">Paul</option>\n<option value="G">George</option>\n<option value="R">Ringo</option>\n</select>');
+
+// If the value corresponds to a label (but not to an option value), none of the options are selected:
+assert(w.render('beatles', ['John'], {}, choices).toString() == '<select multiple="multiple" name="beatles">\n<option value="J">John</option>\n<option value="P">Paul</option>\n<option value="G">George</option>\n<option value="R">Ringo</option>\n</select>');
+
+// If multiple values are given, but some of them are not valid, the valid ones are selected:
+assert(w.render('beatles', ['J', 'G', 'foo'], {}, choices).toString() == '<select multiple="multiple" name="beatles">\n<option value="J" selected="selected">John</option>\n<option value="P">Paul</option>\n<option value="G" selected="selected">George</option>\n<option value="R">Ringo</option>\n</select>');
+
+// The value is compared to its str():
+assert(w.render('nums', [2], {}, choices2).toString() == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+assert(w.render('nums', ['2'], {}, choices3).toString() == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+assert(w.render('nums', [2], {}, choices3).toString() == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+
+// The 'choices' argument can be any iterable:
+assert(w.render('nums', [2], {}, get_choices()).toString() == '<select multiple="multiple" name="nums">\n<option value="0">0</option>\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n</select>');
+
+// You can also pass 'choices' to the constructor:
+var w = new widgets.SelectMultiple({}, choices3);
+assert(w.render('nums', [2]).toString() == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+
+// If 'choices' is passed to both the constructor and render(), then they'll both be in the output:
+assert(w.render('nums', [2], {}, {4: 4, 5: 5}).toString() == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n</select>');
+
+// # Choices are escaped correctly
+// #Won't work without mark_safe
+// >>> print w.render('escape', null, choices=(('bad', 'you & me'), ('good', mark_safe('you &gt; me'))))
+
+// # Unicode choices are correctly rendered as HTML
+//assert(w.render('nums', ['ŠĐĆŽćžšđ'], choices=[('ŠĐĆŽćžšđ', 'ŠĐabcĆŽćžšđ'), ('ćžšđ', 'abcćžšđ')]) == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111" selected="selected">\u0160\u0110abc\u0106\u017d\u0107\u017e\u0161\u0111</option>\n<option value="\u0107\u017e\u0161\u0111">abc\u0107\u017e\u0161\u0111</option>\n</select>');
+
+// # Test the usage of _has_changed
+assert(w._has_changed(null, null) == false);
+assert(w._has_changed([], null) == false);
+assert(w._has_changed(null, ['1']) == true);
+assert(w._has_changed([1, 2], ['1', '2']) == false);
+assert(w._has_changed([1, 2], ['1']) == true);
+assert(w._has_changed([1, 2], ['1', '3']) == true);
+
+// # Choices can be nested one level in order to create HTML optgroups:
+w.choices = {'outer1': 'Outer 1', 'Group "1"': {'inner1': 'Inner 1', 'inner2': 'Inner 2'}};
+
+assert(w.render('nestchoice', null).toString() == '<select multiple="multiple" name="nestchoice">\n<option value="outer1">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
+
+assert(w.render('nestchoice', ['outer1']).toString() == '<select multiple="multiple" name="nestchoice">\n<option value="outer1" selected="selected">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
+
+assert(w.render('nestchoice', ['inner1']).toString() == '<select multiple="multiple" name="nestchoice">\n<option value="outer1">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1" selected="selected">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
+
+assert(w.render('nestchoice', ['outer1', 'inner2']).toString() == '<select multiple="multiple" name="nestchoice">\n<option value="outer1" selected="selected">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2" selected="selected">Inner 2</option>\n</optgroup>\n</select>');
