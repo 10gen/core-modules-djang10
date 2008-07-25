@@ -227,7 +227,59 @@ CheckboxInput.prototype = {
         data = (data == "on") ? true : data;
         return initial != data;
     }
-}
+};
+
+var Select = widgets.Select = function(attrs, choices) {
+    Widget.call(this, attrs || {});
+    
+    this.choices = choices || {};
+};
+
+Select.prototype = {
+    __proto__: Widget.prototype,
+    
+    render: function(name, value, attrs, choices) {
+        if (value == null)
+            value = '';
+        var final_attrs = this.build_attrs(attrs || {}, {name: name});
+        var output = '<select ' + util.flatatt(final_attrs) + '>\n';
+        var options = this.render_options(choices || {}, [value]);
+        if (options)
+            output += options;
+        output += '</select>';
+        return output;
+    },
+    
+    render_options: function(choices, selected_choices) {
+        var render_option = function(option_value, option_label) {
+            option_value = option_value.toString();
+            var selected_html = (selected_choices.indexOf(option_value) > -1) ? ' selected="selected"' : '';
+            return util.simplePythonFormat('<option value="%s"%s>%s</option>', 
+                    content.HTML.escape(option_value), selected_html, content.HTML.escape(option_label));
+        };
+        
+        for (var i in selected_choices) {
+            selected_choices[i] = selected_choices[i].toString();
+        }
+        var output = "";
+        choices = this.choices.merge(choices);
+        for (var option_value in choices) {
+            var option_label = choices[option_value];
+            
+            if (typeof(option_label) == "object") {
+                output += '<optgroup label="' + content.HTML.escape(option_value) + '">\n';
+                for (var option in option_label) {
+                    output += render_option(option, option_label[option]) + "\n";
+                };
+                output += '</optgroup>\n';
+            }
+            else {
+                output += render_option(option_value, option_label) + "\n";
+            }
+        }
+        return output;
+    }
+};
 
 /*
     TODO implement the rest of the widgets

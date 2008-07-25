@@ -14,7 +14,7 @@
 *    limitations under the License.
 */
 
-core.modules.djang10.forms.widgets();
+core.modules.djang10.forms.forms();
 core.content.html();
 
 /**
@@ -216,3 +216,84 @@ assert(w._has_changed(false, 'on') == true);
 assert(w._has_changed(true, 'on') == false);
 assert(w._has_changed(true, '') == true);
 
+// # Select Widget ###############################################################
+
+var choices = {'J': 'John', 'P': 'Paul', 'G': 'George', 'R': 'Ringo'};
+var choices2 = {'1': '1', '2': '2', '3':'3'};
+var choices3 = {1: 1, 2: 2, 3: 3};
+
+var w = new widgets.Select();
+
+assert(w.render('beatle').toString() == '<select name="beatle">\n</select>');
+
+assert(w.render('beatle', 'J', {}, choices).toString() == '<select name="beatle">\n<option value="J" selected="selected">John</option>\n<option value="P">Paul</option>\n<option value="G">George</option>\n<option value="R">Ringo</option>\n</select>');
+
+// If the value is null, none of the options are selected:
+assert(w.render('beatle', null, {}, choices).toString() == '<select name="beatle">\n<option value="J">John</option>\n<option value="P">Paul</option>\n<option value="G">George</option>\n<option value="R">Ringo</option>\n</select>');
+
+// If the value corresponds to a label (but not to an option value), none of the options are selected:
+assert(w.render('beatle', 'John', {}, choices).toString() == '<select name="beatle">\n<option value="J">John</option>\n<option value="P">Paul</option>\n<option value="G">George</option>\n<option value="R">Ringo</option>\n</select>');
+
+// The value is compared to its str():
+assert(w.render('num', 2, {}, choices2).toString() == '<select name="num">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+assert(w.render('num', '2', {}, choices3).toString() == '<select name="num">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+assert(w.render('num', 2, {}, choices3).toString() == '<select name="num">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+
+// The 'choices' argument can be any iterable:
+var get_choices = function() {
+    var result = [];
+    for (var i = 0; i < 5; i++) {
+        result.push(i);
+    }
+    return result;
+};
+
+assert(w.render('num', 2, {}, get_choices()).toString() == '<select name="num">\n<option value="0">0</option>\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n</select>');
+
+/* TODO enable this test after implementing fields.ChoiceField
+var things = {{'id': 1, 'name': 'And Boom'}, {'id': 2, 'name': 'One More Thing!'}};
+
+var SomeForm = function(attrs) {
+    var c = {'': '---------'};
+    for (var i in things) {
+        c[things[i]['id']] = things[i]['name'];
+    }
+    this.somechoice = new fields.ChoiceField({choices: c});
+    forms.Form.call(this, attrs);
+}
+
+SomeForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new SomeForm();
+assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="" selected="selected">---------</option>\n<option value="1">And Boom</option>\n<option value="2">One More Thing!</option>\n</select></td></tr>');
+assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="" selected="selected">---------</option>\n<option value="1">And Boom</option>\n<option value="2">One More Thing!</option>\n</select></td></tr>');
+var f = new SomeForm({'somechoice': 2});
+assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="">---------</option>\n<option value="1">And Boom</option>\n<option value="2" selected="selected">One More Thing!</option>\n</select></td></tr>');
+*/
+
+// You can also pass 'choices' to the constructor:
+var w = new widgets.Select({}, choices3);
+assert(w.render('num', 2).toString() == '<select name="num">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n</select>');
+
+// If 'choices' is passed to both the constructor and render(), then they'll both be in the output:
+assert(w.render('num', 2, {}, {4: 4, 5: 5}).toString() == '<select name="num">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n</select>');
+
+// # Choices are escaped correctly
+// #Won't work without mark_safe
+// >>> print w.render('escape', null, choices=(('bad', 'you & me'), ('good', mark_safe('you &gt; me'))))
+
+// # Unicode choices are correctly rendered as HTML
+//assert(w.render('email', 'ŠĐĆŽćžšđ', choices=[('ŠĐĆŽćžšđ', 'ŠĐabcĆŽćžšđ'), ('ćžšđ', 'abcćžšđ')]) == '<select name="email">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111" selected="selected">\u0160\u0110abc\u0106\u017d\u0107\u017e\u0161\u0111</option>\n<option value="\u0107\u017e\u0161\u0111">abc\u0107\u017e\u0161\u0111</option>\n</select>');
+
+// If choices is passed to the constructor and is a generator, it can be iterated
+// over multiple times without getting consumed:
+var w = new widgets.Select({}, get_choices());
+assert(w.render('num', 2).toString() == '<select name="num">\n<option value="0">0</option>\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n</select>');
+assert(w.render('num', 3).toString() == '<select name="num">\n<option value="0">0</option>\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3" selected="selected">3</option>\n<option value="4">4</option>\n</select>');
+
+// Choices can be nested one level in order to create HTML optgroups:
+w.choices = {'outer1': 'Outer 1', 'Group "1"': {'inner1': 'Inner 1', 'inner2': 'Inner 2'}};
+
+assert(w.render('nestchoice', null).toString() == '<select name="nestchoice">\n<option value="outer1">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
+assert(w.render('nestchoice', 'outer1').toString() == '<select name="nestchoice">\n<option value="outer1" selected="selected">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
+assert(w.render('nestchoice', 'inner1').toString() == '<select name="nestchoice">\n<option value="outer1">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1" selected="selected">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
