@@ -46,9 +46,10 @@ assert(util.simplePythonFormat('what about a number like %d?', 5) == 'what about
 assert(util.simplePythonFormat('%d %i %s %r %f %%', 5, '24.00', 10, {hello: 'world'}, 5.01) == "5 24 10 { \"hello\" : \"world\"  }\n 5.01 %");
 assert(util.simplePythonFormat('%(adverb)s %(verb)s', {test: 'test', verb: 'run', adverb: 'quickly'}, 4) == 'quickly run');
 assert(util.simplePythonFormat('%s', '') == '');
-/*
-    TODO better test coverage for simplePythonFormat
-*/
+assert(util.simplePythonFormat('%d', '25is a number') == '25');
+assert(util.simplePythonFormat('%f', '25is a number') == '25');
+assert(util.simplePythonFormat('%f', '25.42is a decimal') == '25.42');
+assert(util.simplePythonFormat('%s %% %s', 25.42, 25) == '25.42 % 25');
 
 /**
  * flatatt tests
