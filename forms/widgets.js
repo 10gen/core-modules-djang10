@@ -153,9 +153,34 @@ MultipleHiddenInput.prototype = {
     }
     
     /*
-        TODO Do I need to override value_from_datadict here?
+        TODO Do we need to override value_from_datadict here (django does but it seems pointless)?
     */
-}
+};
+
+var FileInput = widgets.FileInput = function(attrs) {
+    Input.call(this, attrs || {});
+};
+
+FileInput.prototype = {
+    __proto__: Input.prototype,
+    
+    input_type: "file",
+    needs_multipart_form: true,
+    
+    render: function(name, value, attrs) {
+        return Input.render.call(this, name, null, attrs);
+    },
+    
+    value_from_datadict: function(data, files, name) {
+        return files[name];
+    },
+    
+    _has_changed: function(initial, data) {
+        if (data == null)
+            return false;
+        return true;
+    }
+};
 
 /*
     TODO implement the rest of the widgets

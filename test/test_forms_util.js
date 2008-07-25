@@ -48,11 +48,11 @@ assert(util.flatatt({"class": "news", "title": "Read this"}) == 'class="news" ti
 /**
  * ErrorList tests
  */
-e = new util.ErrorList();
+var e = new util.ErrorList();
 assert(e.as_ul() == '');
 assert(e.as_text() == '');
 
-e = new util.ErrorList([]);
+var e = new util.ErrorList([]);
 assert(e.as_ul() == '');
 assert(e.as_text() == '');
 e.extend(['an error']);
@@ -65,42 +65,42 @@ assert(e.as_text() == '* an error\n* another\n* and another\n');
 test.assertThrows(new util.Error('Attempting to create ErrorList from non-Array.'), {}, util.ErrorList, {});
 test.assertThrows(new util.Error('Attempting to create ErrorList from non-Array.'), {}, util.ErrorList, 10);
 
-e = new util.ErrorList(['an error']);
+var e = new util.ErrorList(['an error']);
 assert(e.as_ul() == '<ul class="errorlist"><li>an error</li></ul>');
 assert(e.as_text() == '* an error\n');
 assert("" + e == e.as_ul());
 
-e = new util.ErrorList(['an error', 'another']);
+var e = new util.ErrorList(['an error', 'another']);
 assert(e.as_ul() == '<ul class="errorlist"><li>an error</li><li>another</li></ul>');
 assert(e.as_text() == '* an error\n* another\n');
 
-e = new util.ErrorList(new util.ErrorList(['an error', 'another']));
+var e = new util.ErrorList(new util.ErrorList(['an error', 'another']));
 assert(e.as_ul() == '<ul class="errorlist"><li>an error</li><li>another</li></ul>');
 assert(e.as_text() == '* an error\n* another\n');
 
 /**
  * ErrorDict tests
  */
-e = new util.ErrorDict();
+var e = new util.ErrorDict();
 assert(e.as_ul() == '');
 assert(e.as_text() == '');
 
-e = new util.ErrorDict({});
+var e = new util.ErrorDict({});
 assert(e.as_ul() == '');
-e = new util.ErrorDict([]);
+var e = new util.ErrorDict([]);
 assert(e.as_text() == '');
 
 test.assertThrows(new util.Error('Attempting to create ErrorDict from non-mapping type.'), {}, util.ErrorDict, 5);
 test.assertThrows(new util.Error('Attempting to create ErrorDict from non-mapping type.'), {}, util.ErrorDict, 'hi');
 
-e = new util.ErrorDict(['an error']);
+var e = new util.ErrorDict(['an error']);
 assert(e.as_text() == '* 0\n');
 
-e = new util.ErrorDict({hello: "world"});
+var e = new util.ErrorDict({hello: "world"});
 assert(e.as_ul() == '<ul class="errorlist"><li>helloworld</li></ul>');
 assert(e.as_text() == '* hello\n');
 
-e = new util.ErrorDict({hello: "world", other: {test: "test", obj: "obj", toString: function() {return " stuff"}}});
+var e = new util.ErrorDict({hello: "world", other: {test: "test", obj: "obj", toString: function() {return " stuff"}}});
 assert(e.as_ul() == '<ul class="errorlist"><li>helloworld</li><li>other stuff</li></ul>');
 assert(e.as_text() == '* hello\n* other\n  * test\n  * obj\n  * \nfunction () {\n    return \" stuff\";\n}\n\n');
 assert("" + e == e.as_ul());
