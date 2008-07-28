@@ -18,6 +18,16 @@ core.modules.djang10.forms.util();
 core.modules.djang10.test.test();
 
 /**
+ * conditional_escape tests
+ */
+assert(util.conditional_escape("") == "");
+assert(util.conditional_escape(null) == "");
+assert(util.conditional_escape(10) == "10");
+assert(util.conditional_escape("hello") == "hello");
+assert(util.conditional_escape("hello & goodbye") == "hello &amp; goodbye");
+assert(util.conditional_escape(djang10.mark_safe("hello &amp; goodbye")) == "hello &amp; goodbye");
+
+/**
  * bool tests
  */
 assert(util.bool() === false);

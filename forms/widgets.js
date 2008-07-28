@@ -70,7 +70,7 @@ Input.prototype = {
         if (value != '' && value != null) 
             attrs["value"] = value;
         
-        return '<input ' + util.flatatt(attrs) + ' />';
+        return djang10.mark_safe('<input ' + util.flatatt(attrs) + ' />');
     }
 };
 
@@ -128,8 +128,8 @@ Textarea.prototype = {
         if (value == null)
             value = '';
         var final_attrs = this.build_attrs(attrs, {name: name});
-        return util.simplePythonFormat('<textarea %s>%s</textarea>', 
-                util.flatatt(final_attrs), content.HTML.escape(value));
+        return djang10.mark_safe(util.simplePythonFormat('<textarea %s>%s</textarea>', 
+                util.flatatt(final_attrs), util.conditional_escape(value)));
     }
 }
 
@@ -149,7 +149,7 @@ MultipleHiddenInput.prototype = {
         for (i = 0; i < value.length; i++) {
             out += '<input ' + util.flatatt(final_attrs.merge({value: value[i]})) + ' />\n';
         }
-        return out;
+        return djang10.mark_safe(out);
     }
 };
 
@@ -204,7 +204,7 @@ CheckboxInput.prototype = {
         if (value !== '' && value !== true && value !== false && value !== null) {
             final_attrs['value'] = value.toString();
         }
-        return "<input " + util.flatatt(final_attrs) + " />";
+        return djang10.mark_safe("<input " + util.flatatt(final_attrs) + " />");
     },
     
     value_from_datadict: function(data, files, name) {
@@ -236,7 +236,7 @@ Select.prototype = {
         if (options)
             output += options;
         output += '</select>';
-        return output;
+        return djang10.mark_safe(output);
     },
     
     render_options: function(choices, selected_choices) {
@@ -244,7 +244,7 @@ Select.prototype = {
             option_value = option_value.toString();
             var selected_html = (selected_choices.indexOf(option_value) > -1) ? ' selected="selected"' : '';
             return util.simplePythonFormat('<option value="%s"%s>%s</option>', 
-                    content.HTML.escape(option_value), selected_html, content.HTML.escape(option_label));
+                    content.HTML.escape(option_value), selected_html, util.conditional_escape(option_label));
         };
         
         for (var i in selected_choices) {
@@ -331,7 +331,7 @@ SelectMultiple.prototype = {
         if (options)
             output += options;
         output += '</select>';
-        return output;
+        return djang10.mark_safe(output);
     },
     
     _has_changed: function(initial, data) {
@@ -355,7 +355,7 @@ var RadioInput = widgets.RadioInput = function(name, value, attrs, choice, index
     this.value = value;
     this.attrs = attrs;
     this.choice_value = choice[0].toString();
-    this.choice_label = choice[1].toString();
+    this.choice_label = choice[1];
     this.index = index;
 };
 
@@ -368,8 +368,8 @@ RadioInput.prototype = {
         else {
             label_for = '';
         }
-        var choice_label = content.HTML.escape(this.choice_label);
-        return util.simplePythonFormat('<label%s>%s %s</label>', label_for, this.tag(), choice_label);
+        var choice_label = util.conditional_escape(this.choice_label);
+        return djang10.mark_safe(util.simplePythonFormat('<label%s>%s %s</label>', label_for, this.tag(), choice_label));
     },
     
     is_checked: function() {
@@ -384,7 +384,7 @@ RadioInput.prototype = {
         if (this.is_checked()) {
             final_attrs['checked'] = 'checked';
         }
-        return '<input ' + util.flatatt(final_attrs) + ' />';
+        return djang10.mark_safe('<input ' + util.flatatt(final_attrs) + ' />');
     }
 };
 
@@ -406,7 +406,7 @@ RadioFieldRenderer.prototype = {
         for (var i in inputs) {
             inner += '<li>' + inputs[i].toString() + '</li>\n';
         }
-        return '<ul>\n' + inner + '</ul>';
+        return djang10.mark_safe('<ul>\n' + inner + '</ul>');
     }
 }
 

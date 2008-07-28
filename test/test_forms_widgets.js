@@ -98,8 +98,7 @@ assert(w.render('msg', '') == '<textarea rows="10" cols="40" name="msg"></textar
 assert(w.render('msg', None) == '<textarea rows="10" cols="40" name="msg"></textarea>');
 assert(w.render('msg', 'value') == '<textarea rows="10" cols="40" name="msg">value</textarea>');
 assert(w.render('msg', 'some "quoted" & ampersanded value') == '<textarea rows="10" cols="40" name="msg">some &quot;quoted&quot; &amp; ampersanded value</textarea>');
-// TODO This test won't work until we have the equivalent of a mark_safe function
-//assert(w.render('msg', mark_safe('pre &quot;quoted&quot; value')) == '<textarea rows="10" cols="40" name="msg">pre &quot;quoted&quot; value</textarea>');
+assert(w.render('msg', djang10.mark_safe('pre &quot;quoted&quot; value')) == '<textarea rows="10" cols="40" name="msg">pre &quot;quoted&quot; value</textarea>');
 assert(w.render('msg', 'value', {'class': 'pretty', 'rows': 20}) == '<textarea rows="20" cols="40" name="msg" class="pretty">value</textarea>');
 
 // You can also pass 'attrs' to the constructor
@@ -280,8 +279,7 @@ assert(w.render('num', 2).toString() == '<select name="num">\n<option value="1">
 assert(w.render('num', 2, {}, {4: 4, 5: 5}).toString() == '<select name="num">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n</select>');
 
 // # Choices are escaped correctly
-// #Won't work without mark_safe
-// >>> print w.render('escape', null, choices=(('bad', 'you & me'), ('good', mark_safe('you &gt; me'))))
+assert(w.render('escape', null, {}, {'bad': 'you & me', 'good': djang10.mark_safe('you &gt; me')}) == '<select name="escape">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="bad">you &amp; me</option>\n<option value="good">you &gt; me</option>\n</select>');
 
 // # Unicode choices are correctly rendered as HTML
 //assert(w.render('email', 'ŠĐĆŽćžšđ', choices=[('ŠĐĆŽćžšđ', 'ŠĐabcĆŽćžšđ'), ('ćžšđ', 'abcćžšđ')]) == '<select name="email">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111" selected="selected">\u0160\u0110abc\u0106\u017d\u0107\u017e\u0161\u0111</option>\n<option value="\u0107\u017e\u0161\u0111">abc\u0107\u017e\u0161\u0111</option>\n</select>');
@@ -342,8 +340,7 @@ assert(w.render('nums', [2]).toString() == '<select multiple="multiple" name="nu
 assert(w.render('nums', [2], {}, {4: 4, 5: 5}).toString() == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n</select>');
 
 // # Choices are escaped correctly
-// #Won't work without mark_safe
-// >>> print w.render('escape', null, choices=(('bad', 'you & me'), ('good', mark_safe('you &gt; me'))))
+assert(w.render('escape', null, {}, {'bad': 'you & me', 'good': djang10.mark_safe('you &gt; me')}) == '<select multiple="multiple" name="escape">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="bad">you &amp; me</option>\n<option value="good">you &gt; me</option>\n</select>');
 
 // # Unicode choices are correctly rendered as HTML
 //assert(w.render('nums', ['ŠĐĆŽćžšđ'], choices=[('ŠĐĆŽćžšđ', 'ŠĐabcĆŽćžšđ'), ('ćžšđ', 'abcćžšđ')]) == '<select multiple="multiple" name="nums">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111" selected="selected">\u0160\u0110abc\u0106\u017d\u0107\u017e\u0161\u0111</option>\n<option value="\u0107\u017e\u0161\u0111">abc\u0107\u017e\u0161\u0111</option>\n</select>');
@@ -463,9 +460,8 @@ assert(r.radio_inputs[1].choice_label == 'Paul');
 test.assertException(r.radio_inputs[10], toString);
 
 // # Choices are escaped correctly
-// var w = new widgets.RadioSelect();
-// #Won't work without mark_safe
-// >>> print w.render('escape', null, choices=(('bad', 'you & me'), ('good', mark_safe('you &gt; me'))))
+var w = new widgets.RadioSelect();
+assert(w.render('escape', null, {}, {'bad': 'you & me', 'good': djang10.mark_safe('you &gt; me')}) == '<ul>\n<li><label><input type="radio" name="escape" value="bad" /> you &amp; me</label></li>\n<li><label><input type="radio" name="escape" value="good" /> you &gt; me</label></li>\n</ul>');
 
 // # Unicode choices are correctly rendered as HTML
 //var w = new widgets.RadioSelect();

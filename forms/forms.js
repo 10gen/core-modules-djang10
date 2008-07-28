@@ -14,10 +14,6 @@
 *    limitations under the License.
 */
 
-/*
-    TODO Use djang10.mark_safe(str) to implement mark_safe stuff.
-*/
-
 core.modules.djang10.util.object();
 core.modules.djang10.forms.fields();
 core.modules.djang10.forms.util();
@@ -142,7 +138,7 @@ Form.prototype = {
         for (var line = 0; line < output.length; line++) {
             rows += output[line] + "\n";
         }
-        return rows;
+        return djang10.mark_safe(rows);
     },
     
     as_table: function() {
@@ -303,7 +299,7 @@ BoundField.prototype = {
             contents = util.simplePythonFormat('<label for="%s"%s>%s</label>', 
                     widget.id_for_label(id), attrs, contents);
         }
-        return contents;
+        return djang10.mark_safe(contents);
     }
 };
 

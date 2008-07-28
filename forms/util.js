@@ -16,6 +16,18 @@
 
 util = {};
 
+core.content.html();
+
+var conditional_escape = util.conditional_escape = function(s) {
+    if (s == null) {
+        return "";
+    }
+    if (djang10.is_safe(s)) {
+        return s.toString();
+    }
+    return content.HTML.escape(s);
+};
+
 // An imitation of the python built-in bool()
 var bool = util.bool = function(x) {
     if (!x)
@@ -108,6 +120,8 @@ var ErrorDict = util.ErrorDict = function(dict) {
 };
 
 ErrorDict.prototype = {
+    _dontEnum: true,
+    
     toString: function() {
         return this.as_ul();
     },
@@ -119,7 +133,7 @@ ErrorDict.prototype = {
         for (var k in this.dict) {
             inner += '<li>' + k + this.dict[k] + '</li>';
         }
-        return '<ul class="errorlist">' + inner + '</ul>';
+        return djang10.mark_safe('<ul class="errorlist">' + inner + '</ul>');
     },
     
     as_text: function() {
@@ -128,8 +142,10 @@ ErrorDict.prototype = {
         var out = '';
         for (var k in this.dict) {
             var inner = '';
-            for (var j in this.dict[k]) {
-                inner += '  * ' + this.dict[k][j] + '\n';
+            if (typeof(this.dict[k]) == 'object') {
+                for (var j in this.dict[k]) {
+                    inner += '  * ' + this.dict[k][j] + '\n';
+                }
             }
             out += '* ' + k + '\n' + inner;
         }
@@ -156,6 +172,8 @@ var ErrorList = util.ErrorList = function(list) {
 };
 
 ErrorList.prototype = {
+    _dontEnum: true,
+    
     toString: function() {
         return this.as_ul();
     },
@@ -166,7 +184,7 @@ ErrorList.prototype = {
         var inner = '';
         for (var i = 0; i < this.list.length; i++)
             inner += '<li>' + this.list[i] + '</li>';
-        return '<ul class="errorlist">' + inner + '</ul>';
+        return djang10.mark_safe('<ul class="errorlist">' + inner + '</ul>');
     },
     
     as_text: function() {
