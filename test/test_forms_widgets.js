@@ -474,3 +474,45 @@ assert(w.render('beatle', 'J', {}, choices).toString() == '<ul>\n<li><label for=
 // # Attributes provided at render-time are passed to the constituent inputs
 var w = new widgets.RadioSelect();
 assert(w.render('beatle', 'J', {'id': 'bar'}, choices).toString() == '<ul>\n<li><label for="bar_J"><input id="bar_J" type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label for="bar_P"><input id="bar_P" type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label for="bar_G"><input id="bar_G" type="radio" name="beatle" value="G" /> George</label></li>\n<li><label for="bar_R"><input id="bar_R" type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
+
+// # CheckboxSelectMultiple Widget ###############################################
+
+var w = new widgets.CheckboxSelectMultiple();
+assert(w.render('beatles', ['J'], {}, choices).toString() == '<ul>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="J" /> John</label></li>\n<li><label><input name="beatles" type="checkbox" value="P" /> Paul</label></li>\n<li><label><input name="beatles" type="checkbox" value="G" /> George</label></li>\n<li><label><input name="beatles" type="checkbox" value="R" /> Ringo</label></li>\n</ul>');
+assert(w.render('beatles', ['J', 'P'], {}, choices).toString() == '<ul>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="J" /> John</label></li>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="P" /> Paul</label></li>\n<li><label><input name="beatles" type="checkbox" value="G" /> George</label></li>\n<li><label><input name="beatles" type="checkbox" value="R" /> Ringo</label></li>\n</ul>');
+assert(w.render('beatles', ['J', 'P', 'R'], {}, choices).toString() == '<ul>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="J" /> John</label></li>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="P" /> Paul</label></li>\n<li><label><input name="beatles" type="checkbox" value="G" /> George</label></li>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="R" /> Ringo</label></li>\n</ul>');
+
+// If the value is null, none of the options are selected:
+assert(w.render('beatles', null, {}, choices).toString() == '<ul>\n<li><label><input name="beatles" type="checkbox" value="J" /> John</label></li>\n<li><label><input name="beatles" type="checkbox" value="P" /> Paul</label></li>\n<li><label><input name="beatles" type="checkbox" value="G" /> George</label></li>\n<li><label><input name="beatles" type="checkbox" value="R" /> Ringo</label></li>\n</ul>');
+
+// If the value corresponds to a label (but not to an option value), none of the options are selected:
+assert(w.render('beatles', ['John'], {}, choices).toString() == '<ul>\n<li><label><input name="beatles" type="checkbox" value="J" /> John</label></li>\n<li><label><input name="beatles" type="checkbox" value="P" /> Paul</label></li>\n<li><label><input name="beatles" type="checkbox" value="G" /> George</label></li>\n<li><label><input name="beatles" type="checkbox" value="R" /> Ringo</label></li>\n</ul>');
+
+// If multiple values are given, but some of them are not valid, the valid ones are selected:
+assert(w.render('beatles', ['J', 'G', 'foo'], {}, choices).toString() == '<ul>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="J" /> John</label></li>\n<li><label><input name="beatles" type="checkbox" value="P" /> Paul</label></li>\n<li><label><input name="beatles" type="checkbox" checked="checked" value="G" /> George</label></li>\n<li><label><input name="beatles" type="checkbox" value="R" /> Ringo</label></li>\n</ul>');
+
+// The value is compared to its str():
+assert(w.render('nums', [2], {}, choices2).toString() == '<ul>\n<li><label><input name="nums" type="checkbox" value="1" /> 1</label></li>\n<li><label><input name="nums" type="checkbox" checked="checked" value="2" /> 2</label></li>\n<li><label><input name="nums" type="checkbox" value="3" /> 3</label></li>\n</ul>');
+assert(w.render('nums', ['2'], {}, choices3).toString() == '<ul>\n<li><label><input name="nums" type="checkbox" value="1" /> 1</label></li>\n<li><label><input name="nums" type="checkbox" checked="checked" value="2" /> 2</label></li>\n<li><label><input name="nums" type="checkbox" value="3" /> 3</label></li>\n</ul>');
+assert(w.render('nums', [2], {}, choices3).toString() == '<ul>\n<li><label><input name="nums" type="checkbox" value="1" /> 1</label></li>\n<li><label><input name="nums" type="checkbox" checked="checked" value="2" /> 2</label></li>\n<li><label><input name="nums" type="checkbox" value="3" /> 3</label></li>\n</ul>');
+
+// The 'choices' argument can be any iterable:
+assert(w.render('nums', [2], {}, get_choices()).toString() == '<ul>\n<li><label><input name="nums" type="checkbox" value="0" /> 0</label></li>\n<li><label><input name="nums" type="checkbox" value="1" /> 1</label></li>\n<li><label><input name="nums" type="checkbox" checked="checked" value="2" /> 2</label></li>\n<li><label><input name="nums" type="checkbox" value="3" /> 3</label></li>\n<li><label><input name="nums" type="checkbox" value="4" /> 4</label></li>\n</ul>');
+
+// You can also pass 'choices' to the constructor:
+var w = new widgets.CheckboxSelectMultiple({}, choices3);
+assert(w.render('nums', [2]).toString() == '<ul>\n<li><label><input name="nums" type="checkbox" value="1" /> 1</label></li>\n<li><label><input name="nums" type="checkbox" checked="checked" value="2" /> 2</label></li>\n<li><label><input name="nums" type="checkbox" value="3" /> 3</label></li>\n</ul>');
+
+// If 'choices' is passed to both the constructor and render(), then they'll both be in the output:
+assert(w.render('nums', [2], {}, {4: 4, 5: 5}).toString() == '<ul>\n<li><label><input name="nums" type="checkbox" value="1" /> 1</label></li>\n<li><label><input name="nums" type="checkbox" checked="checked" value="2" /> 2</label></li>\n<li><label><input name="nums" type="checkbox" value="3" /> 3</label></li>\n<li><label><input name="nums" type="checkbox" value="4" /> 4</label></li>\n<li><label><input name="nums" type="checkbox" value="5" /> 5</label></li>\n</ul>');
+
+// # Choices are escaped correctly
+assert(w.render('escape', null, {}, {'bad': 'you & me', 'good': djang10.mark_safe('you &gt; me')}) == '<ul>\n<li><label><input name="escape" type="checkbox" value="1" /> 1</label></li>\n<li><label><input name="escape" type="checkbox" value="2" /> 2</label></li>\n<li><label><input name="escape" type="checkbox" value="3" /> 3</label></li>\n<li><label><input name="escape" type="checkbox" value="bad" /> you &amp; me</label></li>\n<li><label><input name="escape" type="checkbox" value="good" /> you &gt; me</label></li>\n</ul>');
+
+// # Test the usage of _has_changed
+assert(w._has_changed(null, null) == false);
+assert(w._has_changed([], null) == false);
+assert(w._has_changed(null, ['1']) == true);
+assert(w._has_changed([1, 2], ['1', '2']) == false);
+assert(w._has_changed([1, 2], ['1']) == true);
+assert(w._has_changed([1, 2], ['1', '3']) == true);

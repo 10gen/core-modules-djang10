@@ -456,6 +456,58 @@ RadioSelect.id_for_label = function(id_) {
     return id_;
 };
 
+var CheckboxSelectMultiple = widgets.CheckboxSelectMultiple = function() {
+    SelectMultiple.apply(this, arguments);
+};
+
+CheckboxSelectMultiple.prototype = {
+    __proto__: SelectMultiple.prototype,
+    
+    render: function(name, value, attrs, choices) {
+        if (value == null) {
+            value = "";
+        }
+        var has_id = util.bool(attrs && attrs['id']);
+        
+        var final_attrs = this.build_attrs(attrs, {name: name});
+        
+        var output = '<ul>\n';
+        for (var j in value) {
+            value[j] = value[j].toString();
+        }
+        choices = this.choices.merge(choices || {});
+        var i = 0;
+        for (var option_value in choices) {
+            var option_label = choices[option_value];
+            var label_for;
+            
+            if (has_id) {
+                final_attrs['id'] = attrs['id'] + '_' + i;
+                label_for = ' for="' + final_attrs['id'] + '"';
+            }
+            else {
+                label_for = '';
+            }
+            
+            var cb = new CheckboxInput(final_attrs, function(val) {return (value.indexOf(val) != -1)});
+            option_value = option_value.toString();
+            var rendered_cb = cb.render(name, option_value);
+            option_label = util.conditional_escape(option_label);
+            output += util.simplePythonFormat('<li><label%s>%s %s</label></li>\n', label_for, rendered_cb, option_label);
+            
+            i++;
+        }
+        output += '</ul>';
+        return djang10.mark_safe(output);
+    }
+}
+
+CheckboxSelectMultiple.id_for_label = function(id_) {
+    if (id_)
+        id_ += '_0';
+    return id_;
+};
+
 /*
     TODO implement the rest of the widgets
 */
