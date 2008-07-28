@@ -516,3 +516,49 @@ assert(w._has_changed(null, ['1']) == true);
 assert(w._has_changed([1, 2], ['1', '2']) == false);
 assert(w._has_changed([1, 2], ['1']) == true);
 assert(w._has_changed([1, 2], ['1', '3']) == true);
+
+// # MultiWidget #################################################################
+
+MyMultiWidget = function() {
+    widgets.MultiWidget.apply(this, arguments);
+};
+
+MyMultiWidget.prototype = {
+    __proto__: widgets.MultiWidget.prototype,
+    
+    decompress: function(value) {
+        if (value)
+            return value.split('__');
+        return ['', ''];
+    },
+    
+    format_output: function(rendered_widgets) {
+        var output = "";
+        for (w in rendered_widgets) {
+            output += rendered_widgets[w] + '<br />';
+        }
+        return output;
+    }
+};
+
+var w = new MyMultiWidget([new widgets.TextInput({'class': 'big'}), new widgets.TextInput({'class': 'small'})]);
+assert(w.render('name', ['john', 'lennon']) == '<input class="big" type="text" name="name_0" value="john" /><br /><input class="small" type="text" name="name_1" value="lennon" /><br />');
+assert(w.render('name', 'john__lennon') == '<input class="big" type="text" name="name_0" value="john" /><br /><input class="small" type="text" name="name_1" value="lennon" /><br />');
+assert(w.render('name', 'john__lennon', {'id':'foo'}) == '<input class="big" type="text" name="name_0" id="foo_0" value="john" /><br /><input class="small" type="text" name="name_1" id="foo_1" value="lennon" /><br />');
+var w = new MyMultiWidget([new widgets.TextInput({'class': 'big'}), new widgets.TextInput({'class': 'small'})], {'id': 'bar'});
+assert(w.render('name', ['john', 'lennon']) == '<input class="big" type="text" name="name_0" id="bar_0" value="john" /><br /><input class="small" type="text" name="name_1" id="bar_1" value="lennon" /><br />');
+
+var w = new MyMultiWidget([new widgets.TextInput(), new widgets.TextInput()]);
+
+// # test with no initial data
+assert(w._has_changed(null, ['john', 'lennon']) == true);
+
+// # test when the data is the same as initial
+assert(w._has_changed('john__lennon', ['john', 'lennon']) == false);
+
+// # test when the first widget's data has changed
+assert(w._has_changed('john__lennon', ['alfred', 'lennon']) == true);
+
+// # test when the last widget's data has changed. this ensures that it is not
+// # short circuiting while testing the widgets.
+assert(w._has_changed('john__lennon', ['john', 'denver']) == true);

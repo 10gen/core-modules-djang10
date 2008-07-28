@@ -508,6 +508,96 @@ CheckboxSelectMultiple.id_for_label = function(id_) {
     return id_;
 };
 
+var MultiWidget = widgets.MultiWidget = function(widgets, attrs) {
+    for (var i in widgets) {
+        if (widgets[i] instanceof Function) {
+            widgets[i] = new widgets[i]();
+        }
+    }
+    this.widgets = widgets;
+    
+    Widget.call(this, attrs);
+};
+
+MultiWidget.prototype = {
+    __proto__: Widget.prototype,
+    
+    render: function(name, value, attrs) {
+        if (!(value instanceof Array)) {
+            value = this.decompress(value);
+        }
+        var output = [];
+        var final_attrs = this.build_attrs(attrs);
+        var id_ = final_attrs['id'];
+        var i = 0;
+        for (widget in this.widgets) {
+            var widget_value = value[i];
+            
+            if (id_) {
+                final_attrs['id'] = id_ + '_' + i;
+            }
+            
+            output.push(this.widgets[widget].render(name + '_' + i, widget_value, final_attrs));
+            
+            i++;
+        }
+        return djang10.mark_safe(this.format_output(output));
+    },
+    
+    value_from_datadict: function(data, files, name) {
+        var vals = [];
+        var i = 0;
+        for (var w in this.widgets) {
+            vals.push(this.widgets[w].value_from_datadict(data, files, name + '_' + i));
+            i++;
+        }
+        return vals;
+    },
+    
+    _has_changed: function(initial, data) {
+        if (initial == null) {
+            initial = [];
+            for (var x = 0; x < data.length; x++) {
+                initial.push('');
+            }
+        } else {
+            initial = this.decompress(initial);
+        }
+        
+        for (var x = 0; x < data.length; x++) {
+            if (this.widgets[x]._has_changed(initial[x], data[x])) {
+                return true;
+            }
+        }
+        return false;
+    },
+    
+    format_output: function(rendered_widgets) {
+        var output = '';
+        for (var i in rendered_widgets) {
+            output += rendered_widgets[i];
+        }
+        return output;
+    },
+    
+    decompress: function(value) {
+        throw util.NotImplementedError('Subclasses must implement this method.');
+    }
+}
+
+MultiWidget.id_for_label = function(id_) {
+    if (id_)
+        id_ += '_0';
+    return id_;
+};
+
+MultiWidget.prototype.__defineGetter__('media', function() {
+    /*
+        TODO implement Media
+    */
+    throw new util.NotImplementedError('TODO: implement media');
+});
+
 /*
     TODO implement the rest of the widgets
 */
