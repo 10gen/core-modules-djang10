@@ -16,6 +16,7 @@
 
 core.modules.djang10.forms.forms();
 core.content.html();
+core.modules.djang10.test.test();
 
 /**
  * TextInput tests
@@ -243,7 +244,7 @@ assert(w.render('num', 2, {}, choices3).toString() == '<select name="num">\n<opt
 var get_choices = function() {
     var result = [];
     for (var i = 0; i < 5; i++) {
-        result.push(i);
+        result.push(i.toFixed(0));
     }
     return result;
 };
@@ -365,3 +366,115 @@ assert(w.render('nestchoice', ['outer1']).toString() == '<select multiple="multi
 assert(w.render('nestchoice', ['inner1']).toString() == '<select multiple="multiple" name="nestchoice">\n<option value="outer1">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1" selected="selected">Inner 1</option>\n<option value="inner2">Inner 2</option>\n</optgroup>\n</select>');
 
 assert(w.render('nestchoice', ['outer1', 'inner2']).toString() == '<select multiple="multiple" name="nestchoice">\n<option value="outer1" selected="selected">Outer 1</option>\n<optgroup label="Group &quot;1&quot;">\n<option value="inner1">Inner 1</option>\n<option value="inner2" selected="selected">Inner 2</option>\n</optgroup>\n</select>');
+
+// # RadioSelect Widget ##########################################################
+
+var w = new widgets.RadioSelect();
+assert(w.render('beatle', 'J', {}, choices).toString() == '<ul>\n<li><label><input type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label><input type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label><input type="radio" name="beatle" value="G" /> George</label></li>\n<li><label><input type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
+
+// If the value is null, none of the options are checked:
+assert(w.render('beatle', null, {}, choices).toString() == '<ul>\n<li><label><input type="radio" name="beatle" value="J" /> John</label></li>\n<li><label><input type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label><input type="radio" name="beatle" value="G" /> George</label></li>\n<li><label><input type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
+
+// If the value corresponds to a label (but not to an option value), none of the options are checked:
+assert(w.render('beatle', 'John', {}, choices).toString() == '<ul>\n<li><label><input type="radio" name="beatle" value="J" /> John</label></li>\n<li><label><input type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label><input type="radio" name="beatle" value="G" /> George</label></li>\n<li><label><input type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
+
+// The value is compared to its str():
+assert(w.render('num', 2, {}, choices2).toString() == '<ul>\n<li><label><input type="radio" name="num" value="1" /> 1</label></li>\n<li><label><input type="radio" name="num" value="2" checked="checked" /> 2</label></li>\n<li><label><input type="radio" name="num" value="3" /> 3</label></li>\n</ul>');
+assert(w.render('num', '2', {}, choices3).toString() == '<ul>\n<li><label><input type="radio" name="num" value="1" /> 1</label></li>\n<li><label><input type="radio" name="num" value="2" checked="checked" /> 2</label></li>\n<li><label><input type="radio" name="num" value="3" /> 3</label></li>\n</ul>');
+assert(w.render('num', 2, {}, choices3).toString() == '<ul>\n<li><label><input type="radio" name="num" value="1" /> 1</label></li>\n<li><label><input type="radio" name="num" value="2" checked="checked" /> 2</label></li>\n<li><label><input type="radio" name="num" value="3" /> 3</label></li>\n</ul>');
+
+// The 'choices' argument can be any iterable:
+assert(w.render('num', 2, {}, get_choices()).toString() == '<ul>\n<li><label><input type="radio" name="num" value="0" /> 0</label></li>\n<li><label><input type="radio" name="num" value="1" /> 1</label></li>\n<li><label><input type="radio" name="num" value="2" checked="checked" /> 2</label></li>\n<li><label><input type="radio" name="num" value="3" /> 3</label></li>\n<li><label><input type="radio" name="num" value="4" /> 4</label></li>\n</ul>');
+
+// You can also pass 'choices' to the constructor:
+var w = new widgets.RadioSelect({}, choices3);
+assert(w.render('num', 2).toString() == '<ul>\n<li><label><input type="radio" name="num" value="1" /> 1</label></li>\n<li><label><input type="radio" name="num" value="2" checked="checked" /> 2</label></li>\n<li><label><input type="radio" name="num" value="3" /> 3</label></li>\n</ul>');
+
+// If 'choices' is passed to both the constructor and render(), then they'll both be in the output:
+assert(w.render('num', 2, {}, {4: 4, 5: 5}).toString() == '<ul>\n<li><label><input type="radio" name="num" value="1" /> 1</label></li>\n<li><label><input type="radio" name="num" value="2" checked="checked" /> 2</label></li>\n<li><label><input type="radio" name="num" value="3" /> 3</label></li>\n<li><label><input type="radio" name="num" value="4" /> 4</label></li>\n<li><label><input type="radio" name="num" value="5" /> 5</label></li>\n</ul>');
+
+// RadioSelect uses a RadioFieldRenderer to render the individual radio inputs.
+// You can manipulate that object directly to customize the way the RadioSelect
+// is rendered.
+var w = new widgets.RadioSelect();
+var r = w.get_renderer('beatle', 'J', {}, choices);
+var out = "";
+for (var inp in r.radio_inputs)
+    out += r.radio_inputs[inp].toString();
+assert(out == '<label><input type="radio" name="beatle" value="J" checked="checked" /> John</label><label><input type="radio" name="beatle" value="P" /> Paul</label><label><input type="radio" name="beatle" value="G" /> George</label><label><input type="radio" name="beatle" value="R" /> Ringo</label>');
+
+var out = "";
+for (var inp in r.radio_inputs)
+    out += '<p>' + r.radio_inputs[inp].tag() + " " + r.radio_inputs[inp].choice_label + '</p>';
+assert(out == '<p><input type="radio" name="beatle" value="J" checked="checked" /> John</p><p><input type="radio" name="beatle" value="P" /> Paul</p><p><input type="radio" name="beatle" value="G" /> George</p><p><input type="radio" name="beatle" value="R" /> Ringo</p>');
+
+var out = "";
+for (var inp in r.radio_inputs)
+    out += r.radio_inputs[inp].name + r.radio_inputs[inp].value + r.radio_inputs[inp].choice_value + r.radio_inputs[inp].choice_label + r.radio_inputs[inp].is_checked();
+assert(out == 'beatleJJJohntruebeatleJPPaulfalsebeatleJGGeorgefalsebeatleJRRingofalse');
+
+// You can create your own custom renderers for RadioSelect to use.
+var MyRenderer = function() {
+    widgets.RadioFieldRenderer.apply(this, arguments);
+};
+
+MyRenderer.prototype = {
+    __proto__: widgets.RadioFieldRenderer.prototype,
+    
+    render: function() {
+        var out = "";
+        for (var choice in this.radio_inputs) {
+            out += this.radio_inputs[choice] + "<br />\n";
+        }
+        return out;
+    }
+};
+
+var w = new widgets.RadioSelect({}, {}, MyRenderer);
+assert(w.render('beatle', 'G', {}, choices).toString() == '<label><input type="radio" name="beatle" value="J" /> John</label><br />\n<label><input type="radio" name="beatle" value="P" /> Paul</label><br />\n<label><input type="radio" name="beatle" value="G" checked="checked" /> George</label><br />\n<label><input type="radio" name="beatle" value="R" /> Ringo</label><br />\n');
+
+// Or you can use custom RadioSelect fields that use your custom renderer.
+var CustomRadioSelect = function() {
+    this.renderer = MyRenderer;
+    
+    widgets.RadioSelect.call(this);
+};
+
+CustomRadioSelect.prototype = {
+    __proto__: widgets.RadioSelect
+};
+
+var w = new CustomRadioSelect();
+assert(w.render('beatle', 'G', {}, choices).toString() == '<label><input type="radio" name="beatle" value="J" /> John</label><br />\n<label><input type="radio" name="beatle" value="P" /> Paul</label><br />\n<label><input type="radio" name="beatle" value="G" checked="checked" /> George</label><br />\n<label><input type="radio" name="beatle" value="R" /> Ringo</label><br />\n');
+
+// A RadioFieldRenderer object also allows index access to individual RadioInput
+// objects.
+var w = new widgets.RadioSelect();
+
+r = w.get_renderer('beatle', 'J', {}, choices);
+assert(r.radio_inputs[1].toString() == '<label><input type="radio" name="beatle" value="P" /> Paul</label>');
+assert(r.radio_inputs[0].toString() == '<label><input type="radio" name="beatle" value="J" checked="checked" /> John</label>');
+assert(r.radio_inputs[0].is_checked() == true);
+assert(r.radio_inputs[1].is_checked() == false);
+assert(r.radio_inputs[1].name == 'beatle');
+assert(r.radio_inputs[1].value == 'J');
+assert(r.radio_inputs[1].choice_value == 'P');
+assert(r.radio_inputs[1].choice_label == 'Paul');
+test.assertException(r.radio_inputs[10], toString);
+
+// # Choices are escaped correctly
+// var w = new widgets.RadioSelect();
+// #Won't work without mark_safe
+// >>> print w.render('escape', null, choices=(('bad', 'you & me'), ('good', mark_safe('you &gt; me'))))
+
+// # Unicode choices are correctly rendered as HTML
+//var w = new widgets.RadioSelect();
+//assert(unicode(w.render('email', 'ŠĐĆŽćžšđ', choices=[('ŠĐĆŽćžšđ', 'ŠĐabcĆŽćžšđ'), ('ćžšđ', 'abcćžšđ')])) == '<ul>\n<li><label><input checked="checked" type="radio" name="email" value="\u0160\u0110\u0106\u017d\u0107\u017e\u0161\u0111" /> \u0160\u0110abc\u0106\u017d\u0107\u017e\u0161\u0111</label></li>\n<li><label><input type="radio" name="email" value="\u0107\u017e\u0161\u0111" /> abc\u0107\u017e\u0161\u0111</label></li>\n</ul>');
+
+// # Attributes provided at instantiation are passed to the constituent inputs
+var w = new widgets.RadioSelect({'id':'foo'});
+assert(w.render('beatle', 'J', {}, choices).toString() == '<ul>\n<li><label for="foo_J"><input id="foo_J" type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label for="foo_P"><input id="foo_P" type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label for="foo_G"><input id="foo_G" type="radio" name="beatle" value="G" /> George</label></li>\n<li><label for="foo_R"><input id="foo_R" type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
+
+// # Attributes provided at render-time are passed to the constituent inputs
+var w = new widgets.RadioSelect();
+assert(w.render('beatle', 'J', {'id': 'bar'}, choices).toString() == '<ul>\n<li><label for="bar_J"><input id="bar_J" type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label for="bar_P"><input id="bar_P" type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label for="bar_G"><input id="bar_G" type="radio" name="beatle" value="G" /> George</label></li>\n<li><label for="bar_R"><input id="bar_R" type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');

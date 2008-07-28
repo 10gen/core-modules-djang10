@@ -348,7 +348,113 @@ SelectMultiple.prototype = {
         }
         return false;
     }
+};
+
+var RadioInput = widgets.RadioInput = function(name, value, attrs, choice, index) {
+    this.name = name;
+    this.value = value;
+    this.attrs = attrs;
+    this.choice_value = choice[0].toString();
+    this.choice_label = choice[1].toString();
+    this.index = index;
+};
+
+RadioInput.prototype = {
+    toString: function() {
+        var label_for;
+        if (typeof(this.attrs.id) != 'undefined') {
+            label_for = ' for="' + this.attrs.id + "_" + this.index + '"';
+        }
+        else {
+            label_for = '';
+        }
+        var choice_label = content.HTML.escape(this.choice_label);
+        return util.simplePythonFormat('<label%s>%s %s</label>', label_for, this.tag(), choice_label);
+    },
+    
+    is_checked: function() {
+        return this.value == this.choice_value;
+    },
+    
+    tag: function() {
+        if (typeof(this.attrs.id) != 'undefined') {
+            this.attrs.id += "_" + this.index;
+        }
+        var final_attrs = this.attrs.merge({type:'radio', name: this.name, value: this.choice_value});
+        if (this.is_checked()) {
+            final_attrs['checked'] = 'checked';
+        }
+        return '<input ' + util.flatatt(final_attrs) + ' />';
+    }
+};
+
+var RadioFieldRenderer = widgets.RadioFieldRenderer = function(name, value, attrs, choices) {
+    this.name = name;
+    this.value = value;
+    this.attrs = attrs;
+    this.choices = choices;
+};
+
+RadioFieldRenderer.prototype = {
+    toString: function() {
+        return this.render();
+    },
+    
+    render: function() {
+        var inner = "";
+        var inputs = this.radio_inputs;
+        for (var i in inputs) {
+            inner += '<li>' + inputs[i].toString() + '</li>\n';
+        }
+        return '<ul>\n' + inner + '</ul>';
+    }
 }
+
+RadioFieldRenderer.prototype.__defineGetter__("radio_inputs", function() {
+    var ris = [];
+    for (var i in this.choices) {
+        var attrs_copy = {};
+        for (var j in this.attrs) {
+            attrs_copy[j] = this.attrs[j];
+        }
+        ris.push(new RadioInput(this.name, this.value, attrs_copy, [i, this.choices[i]], i));
+    }
+    return ris;
+});
+
+var RadioSelect = widgets.RadioSelect = function(attrs, choices, renderer) {
+    if (typeof(renderer) != 'undefined') {
+        this.renderer = renderer;
+    }
+    Select.call(this, attrs, choices);
+};
+
+RadioSelect.prototype = {
+    __proto__: Select.prototype,
+
+    renderer: RadioFieldRenderer,
+    
+    get_renderer: function(name, value, attrs, choices) {        
+        if (value == null) {
+            value = '';
+        }
+        var str_value = value.toString();
+        var final_attrs = this.build_attrs(attrs);
+        choices = this.choices.merge(choices || {});
+        return new this.renderer(name, str_value, final_attrs, choices);
+    },
+    
+    render: function(name, value, attrs, choices) {
+        return this.get_renderer(name, value, attrs, choices).render();
+    }
+};
+
+RadioSelect.id_for_label = function(id_) {
+    if (id_) {
+        id_ += '_0';
+    }
+    return id_;
+};
 
 /*
     TODO implement the rest of the widgets
