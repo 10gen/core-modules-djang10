@@ -72,7 +72,7 @@ Field.prototype = {
     },
     
     clean: function(value) {
-        if(this.required && (value == null || value == '')) 
+        if(this.required && (value == null || (typeof(value) == 'string' && value == ''))) 
             throw new util.ValidationError(this.error_messages["required"]);
         
         return value;
@@ -101,14 +101,12 @@ CharField.prototype = {
     },
     
     clean: function(value) {
-        // convert to a string
-        if (value != null)
-            value = value.toString();
-        else
-            value = '';
-        
         Field.prototype.clean.call(this, value);
         
+        if (value == null || (typeof(value) == 'string' && value == ''))
+            return '';
+        
+        value = value.toString();
         var value_len = value.length;
         if(this.max_length != null && value_len > this.max_length)
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages["max_length"], {'max': this.max_length, 'length': value_len}));
@@ -130,6 +128,54 @@ CharField.prototype = {
         return attrs;
     }
 };
+
+var IntegerField = fields.IntegerField = function(params) {
+    params = {
+        max_value: null,
+        min_value: null
+    }.merge(params || {});
+    
+    this.max_value = params.max_value;
+    this.min_value = params.min_value;
+    
+    Field.call(this, params);
+};
+
+IntegerField.prototype = {
+    __proto__: Field.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a whole number.',
+        'max_value': 'Ensure this value is less than or equal to %s.',
+        'min_value': 'Ensure this value is greater than or equal to %s.'
+    },
+    
+    clean: function(value) {
+        Field.prototype.clean.call(this, value);
+        
+        if (value == null || (typeof(value) == 'string' && value == ''))
+            return null;
+        
+        // convert to string and trim
+        value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
+        
+        if (/^\d+$/.test(value)) {
+            value = Number(value);
+        }
+        else {
+            throw new util.ValidationError(this.error_messages['invalid']);
+        }
+        
+        if (this.max_value != null && value > this.max_value) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_value'], this.max_value));
+        }
+        if (this.min_value != null && value < this.min_value) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['min_value'], this.min_value));
+        }
+        
+        return value;
+    }
+}
 
 /*
     TODO Implement the rest of the fields

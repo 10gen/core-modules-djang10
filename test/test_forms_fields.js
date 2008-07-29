@@ -51,6 +51,63 @@ test.assertThrows(new util.ValidationError("Ensure this value has at least 10 ch
 assert(f.clean('1234567890') == '1234567890');
 assert(f.clean('1234567890a') == '1234567890a');
 
+// # IntegerField ################################################################
+
+var f = new fields.IntegerField();
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.IntegerField.prototype.clean, '');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.IntegerField.prototype.clean, null);
+assert(f.clean('1') == 1);
+assert(typeof(f.clean('1') ) == "number");
+assert(f.clean('23') == 23);
+test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, 'a');
+assert(f.clean(42) == 42);
+test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '3.14');
+assert(f.clean('1 ') == 1);
+assert(f.clean(' 1') == 1);
+assert(f.clean(' 1 ') == 1);
+test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '1a');
+
+var f = new fields.IntegerField({required: false});
+assert(f.clean('') == null);
+assert(f.clean(null) == null);
+assert(f.clean('1') == 1);
+assert(typeof(f.clean('1')) == "number");
+assert(f.clean('23') == 23);
+test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, 'a');
+assert(f.clean('1 ') == 1);
+assert(f.clean(' 1') == 1);
+assert(f.clean(' 1 ') == 1);
+test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '1a');
+
+// IntegerField accepts an optional max_value parameter:
+var f = new fields.IntegerField({max_value: 10});
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.IntegerField.prototype.clean, null);
+assert(f.clean(1) == 1);
+assert(f.clean(10) == 10);
+test.assertThrows(new util.ValidationError("Ensure this value is less than or equal to 10."), f, fields.IntegerField.prototype.clean, 11);
+assert(f.clean('10') == 10);
+test.assertThrows(new util.ValidationError("Ensure this value is less than or equal to 10."), f, fields.IntegerField.prototype.clean, '11');
+
+// IntegerField accepts an optional min_value parameter:
+var f = new fields.IntegerField({min_value: 10});
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.IntegerField.prototype.clean, null);
+test.assertThrows(new util.ValidationError("Ensure this value is greater than or equal to 10."), f, fields.IntegerField.prototype.clean, 1);
+assert(f.clean(10) == 10);
+assert(f.clean(11) == 11);
+assert(f.clean('10') == 10);
+assert(f.clean('11') == 11);
+
+// min_value and max_value can be used together:
+var f = new fields.IntegerField({min_value: 10, max_value: 20});
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.IntegerField.prototype.clean, null);
+test.assertThrows(new util.ValidationError("Ensure this value is greater than or equal to 10."), f, fields.IntegerField.prototype.clean, 1);
+assert(f.clean(10) == 10);
+assert(f.clean(11) == 11);
+assert(f.clean('10') == 10);
+assert(f.clean('11') == 11);
+assert(f.clean(20) == 20);
+test.assertThrows(new util.ValidationError("Ensure this value is less than or equal to 20."), f, fields.IntegerField.prototype.clean, 21);
+
 /*
     TODO Write tests for the rest of the fields
 */
