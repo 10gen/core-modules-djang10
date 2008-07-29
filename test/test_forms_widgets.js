@@ -578,3 +578,13 @@ assert(w.render('date', Date.parse('2006-1-10 7:30')) == '<input class="pretty" 
 
 assert(w._has_changed(Date.parse('2008-5-5 12:40:00'), ['2008-05-05', '12:40:00']) == false);
 assert(w._has_changed(Date.parse('2008-5-5 12:40:00'), ['2008-05-05', '12:41:00']) == true);
+
+// # DateTimeInput ###############################################################
+
+var w = new widgets.DateTimeInput();
+assert(w.render('date', null) == '<input type="text" name="date" />');
+var d = Date.parse('2007-17-9 12:51:34');
+
+assert(w.render('date', d) == '<input type="text" name="date" value="2007-09-17 12:51:34" />');
+assert(w.render('date', Date.parse('2007-17-9 12:51:34')) == '<input type="text" name="date" value="2007-09-17 12:51:34" />');
+assert(w.render('date', Date.parse('2007-17-9 12:51')) == '<input type="text" name="date" value="2007-09-17 12:51:00" />');

@@ -614,8 +614,30 @@ SplitDateTimeWidget.prototype = {
     }
 }
 
-/*
-    TODO implement the rest of the widgets
-*/
+var DateTimeInput = widgets.DateTimeInput = function(attrs, format) {
+    Input.call(this);
+    
+    if (format) {
+        this.format = format;
+    }
+};
+
+DateTimeInput.prototype = {
+    __proto__: Input.prototype,
+    
+    input_type: 'text',
+    format: '%Y-%m-%d %H:%M:%S',
+    
+    render: function(name, value, attrs) {
+        if (value == null) {
+            value = '';
+        }
+        else if (value['strftime']) {
+            value = value.strftime(this.format);
+        }
+        
+        return Input.render.call(this, name, value, attrs);
+    }
+};
 
 return widgets;
