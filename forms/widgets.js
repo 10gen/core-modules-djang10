@@ -598,6 +598,22 @@ MultiWidget.prototype.__defineGetter__('media', function() {
     throw new util.NotImplementedError('TODO: implement media');
 });
 
+var SplitDateTimeWidget = widgets.SplitDateTimeWidget = function(attrs) {
+    var widgets = [new TextInput(attrs), new TextInput(attrs)];
+    MultiWidget.call(this, widgets, attrs);
+};
+
+SplitDateTimeWidget.prototype = {
+    __proto__: MultiWidget.prototype,
+    
+    decompress: function(value) {
+        if (value) {
+            return [value.strftime("%Y-%d-%m"), value.strftime("%H:%M:%S")];
+        }
+        return [null, null];
+    }
+}
+
 /*
     TODO implement the rest of the widgets
 */

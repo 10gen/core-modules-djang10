@@ -519,7 +519,7 @@ assert(w._has_changed([1, 2], ['1', '3']) == true);
 
 // # MultiWidget #################################################################
 
-MyMultiWidget = function() {
+var MyMultiWidget = function() {
     widgets.MultiWidget.apply(this, arguments);
 };
 
@@ -562,3 +562,19 @@ assert(w._has_changed('john__lennon', ['alfred', 'lennon']) == true);
 // # test when the last widget's data has changed. this ensures that it is not
 // # short circuiting while testing the widgets.
 assert(w._has_changed('john__lennon', ['john', 'denver']) == true);
+
+// # SplitDateTimeWidget #########################################################
+
+var w = new widgets.SplitDateTimeWidget();
+assert(w.render('date', '') == '<input type="text" name="date_0" /><input type="text" name="date_1" />');
+assert(w.render('date', null) == '<input type="text" name="date_0" /><input type="text" name="date_1" />');
+assert(w.render('date', Date.parse('2006-1-10 7:30')) == '<input type="text" name="date_0" value="2006-01-10" /><input type="text" name="date_1" value="07:30:00" />');
+assert(w.render('date', [Date.parse('2006-1-10 7:30').strftime("%Y-%d-%m"), Date.parse('2006-1-10 7:30').strftime("%H:%M:%S")]) == '<input type="text" name="date_0" value="2006-01-10" /><input type="text" name="date_1" value="07:30:00" />');
+
+// You can also pass 'attrs' to the constructor. In this case, the attrs will be
+// included on both widgets.
+var w = new widgets.SplitDateTimeWidget({'class': 'pretty'});
+assert(w.render('date', Date.parse('2006-1-10 7:30')) == '<input class="pretty" type="text" name="date_0" value="2006-01-10" /><input class="pretty" type="text" name="date_1" value="07:30:00" />');
+
+assert(w._has_changed(Date.parse('2008-5-5 12:40:00'), ['2008-05-05', '12:40:00']) == false);
+assert(w._has_changed(Date.parse('2008-5-5 12:40:00'), ['2008-05-05', '12:41:00']) == true);
