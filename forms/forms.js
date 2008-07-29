@@ -180,7 +180,9 @@ Form.prototype = {
                 //TODO: special case FileField
                 
                 value = field.clean(value);
-                value = this['clean_' + name] || value;
+                if (this['clean_' + name]) {
+                    value = this['clean_' + name] ();
+                }
                 this.cleaned_data[name] = value;
             } catch(e if Object.instanceOf(e, util.ValidationError)) {
                 this._errors.dict[name] = e.message;

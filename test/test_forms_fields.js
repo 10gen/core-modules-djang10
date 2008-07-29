@@ -51,6 +51,10 @@ test.assertThrows(new util.ValidationError("Ensure this value has at least 10 ch
 assert(f.clean('1234567890') == '1234567890');
 assert(f.clean('1234567890a') == '1234567890a');
 
+var f = new fields.CharField({widget: widgets.Textarea});
+assert(f.widget.constructor == widgets.Textarea);
+assert(f.widget.constructor != widgets.TextInput);
+
 // # IntegerField ################################################################
 
 var f = new fields.IntegerField();
@@ -59,6 +63,9 @@ test.assertThrows(new util.ValidationError("This field is required."), f, fields
 assert(f.clean('1') == 1);
 assert(typeof(f.clean('1') ) == "number");
 assert(f.clean('23') == 23);
+assert(f.clean('-1') == -1);
+assert(f.clean(-1) == -1);
+assert(f.clean('0') == 0);
 test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, 'a');
 assert(f.clean(42) == 42);
 test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '3.14');
@@ -114,6 +121,8 @@ var f = new fields.FloatField();
 test.assertThrows(new util.ValidationError("This field is required."), f, fields.FloatField.prototype.clean, '');
 test.assertThrows(new util.ValidationError("This field is required."), f, fields.FloatField.prototype.clean, null);
 assert(f.clean('1') == 1.0);
+assert(f.clean('-1') == -1.0);
+assert(f.clean('-1.2') == -1.2);
 assert(typeof f.clean('1') == 'number');
 assert(f.clean('23') == 23.0);
 assert(f.clean('3.14') == 3.1400000000000001);
@@ -136,6 +145,54 @@ test.assertThrows(new util.ValidationError("Ensure this value is less than or eq
 test.assertThrows(new util.ValidationError("Ensure this value is greater than or equal to 0.5."), f, fields.FloatField.prototype.clean, '0.4');
 assert(f.clean('1.5') == 1.5);
 assert(f.clean('0.5') == 0.5);
+
+// # DecimalField ################################################################
+
+var f = new fields.DecimalField({max_digits: 4, decimal_places: 2});
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.DecimalField.prototype.clean, '');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.DecimalField.prototype.clean, null);
+assert(f.clean('1') == 1.0);
+assert(typeof f.clean('1') == "number");
+assert(f.clean('23') == 23);
+assert(f.clean('3.14') == 3.14);
+assert(f.clean(3.14) == 3.14);
+test.assertThrows(new util.ValidationError("Enter a number."), f, fields.DecimalField.prototype.clean, 'a');
+assert(f.clean('1.0 ') == 1.0);
+assert(f.clean(' 1.0') == 1.0);
+assert(f.clean(' 1.0 ') == 1.0);
+test.assertThrows(new util.ValidationError("Enter a number."), f, fields.DecimalField.prototype.clean, '1.0a');
+test.assertThrows(new util.ValidationError("Ensure that there are no more than 4 digits in total."), f, fields.DecimalField.prototype.clean, '123.45');
+test.assertThrows(new util.ValidationError("Ensure that there are no more than 2 decimal places."), f, fields.DecimalField.prototype.clean, '1.234');
+test.assertThrows(new util.ValidationError("Ensure that there are no more than 2 digits before the decimal point."), f, fields.DecimalField.prototype.clean, '123.4');
+assert(f.clean('-12.34') == -12.34);
+test.assertThrows(new util.ValidationError("Ensure that there are no more than 4 digits in total."), f, fields.DecimalField.prototype.clean, '-123.45');
+/*
+    TODO enable this after Number is fixed
+*/
+//assert(f.clean('-.12') == -0.12);
+assert(f.clean('-00.12') == -0.12);
+assert(f.clean('-000.12') == -0.12);
+test.assertThrows(new util.ValidationError("Ensure that there are no more than 2 decimal places."), f, fields.DecimalField.prototype.clean, '-000.123');
+test.assertThrows(new util.ValidationError("Ensure that there are no more than 4 digits in total."), f, fields.DecimalField.prototype.clean, '-000.1234');
+test.assertThrows(new util.ValidationError("Enter a number."), f, fields.DecimalField.prototype.clean, '--0.12');
+
+var f = new fields.DecimalField({max_digits: 4, decimal_places: 2, required: false});
+assert(f.clean('') == null);
+assert(f.clean(null) == null);
+assert(f.clean('1') == 1);
+
+// DecimalField accepts min_value and max_value just like IntegerField:
+var f = new fields.DecimalField({max_digits: 4, decimal_places: 2, max_value: 1.5, min_value: 0.5});
+
+test.assertThrows(new util.ValidationError("Ensure this value is less than or equal to 1.5."), f, fields.DecimalField.prototype.clean, '1.6');
+test.assertThrows(new util.ValidationError("Ensure this value is greater than or equal to 0.5."), f, fields.DecimalField.prototype.clean, '0.4');
+assert(f.clean('1.5') == 1.5);
+assert(f.clean('0.5') == 0.5);
+/*
+    TODO enable this after Number is fixed
+*/
+//assert(f.clean('.5') == 0.5);
+assert(f.clean('00.50') == 0.50);
 
 /*
     TODO Write tests for the rest of the fields

@@ -36,6 +36,8 @@ var Field = fields.Field = function(params) {
     this.help_text = params.help_text;
     if(params.widget != null)
         this.widget = params.widget;
+    else
+        this.widget = widgets.TextInput
     
     //instantiate the widget if it needs it
     if (this.widget instanceof Function) {
@@ -60,7 +62,6 @@ var Field = fields.Field = function(params) {
 };
 
 Field.prototype = {
-    widget: widgets.TextInput,
     hidden_widget: widgets.HiddenInput,
     default_error_messages: {
         required: "This field is required.",
@@ -159,7 +160,7 @@ IntegerField.prototype = {
         // convert to string and trim
         value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
         
-        if (/^\d+$/.test(value)) {
+        if (/^-?\d+$/.test(value)) {
             value = Number(value);
         }
         else {
@@ -175,7 +176,7 @@ IntegerField.prototype = {
         
         return value;
     }
-}
+};
 
 var FloatField = fields.FloatField = function(params) {
     params = {
@@ -207,7 +208,7 @@ FloatField.prototype = {
         // convert to string and trim
         value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
         
-        if (/(^\d+\.?$)|(^\d*\.\d+$)/.test(value)) {
+        if (/(^-?\d+\.?$)|(^-?\d*\.\d+$)/.test(value)) {
             value = Number(value);
         }
         else {
@@ -223,7 +224,81 @@ FloatField.prototype = {
         
         return value;
     }
-}
+};
+
+var DecimalField = fields.DecimalField = function(params) {
+    params = {
+        max_value: null,
+        min_value: null,
+        max_digits: null,
+        decimal_places: null
+    }.merge(params || {});
+    
+    this.max_value = params.max_value;
+    this.min_value = params.min_value;
+    this.max_digits = params.max_digits;
+    this.decimal_places = params.decimal_places;
+    
+    Field.call(this, params);
+};
+
+DecimalField.prototype = {
+    __proto__: Field.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a number.',
+        'max_value': 'Ensure this value is less than or equal to %s.',
+        'min_value': 'Ensure this value is greater than or equal to %s.',
+        'max_digits': 'Ensure that there are no more than %s digits in total.',
+        'max_decimal_places': 'Ensure that there are no more than %s decimal places.',
+        'max_whole_digits': 'Ensure that there are no more than %s digits before the decimal point.'
+    },
+    
+    clean: function(value) {
+        Field.prototype.clean.call(this, value);
+        
+        if (value == null || (typeof(value) == 'string' && value == ''))
+            return null;
+        
+        // convert to string and trim
+        value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
+        
+        // fix for Number('-.12') => 12
+        value = value.replace(/^-\./, '')
+
+        if (/(^-?\d+\.?$)|(^-?\d*\.\d+$)/.test(value)) {
+            var pieces = value.replace('-', '').split('.');
+            if (pieces.length == 2) {
+                pieces[0] = pieces[0].replace(/0+/, '0');
+            }
+            var decimals = (pieces.length == 2) ? pieces[1].length : 0;
+            var digits = pieces[0].length;
+            
+            value = Number(value);
+        }
+        else {
+            throw new util.ValidationError(this.error_messages['invalid']);
+        }
+        
+        if (this.max_value != null && value > this.max_value) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_value'], this.max_value));
+        }
+        if (this.min_value != null && value < this.min_value) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['min_value'], this.min_value));
+        }
+        if (this.max_digits != null && (digits + decimals) > this.max_digits) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_digits'], this.max_digits));
+        }
+        if (this.decimal_places != null && decimals > this.decimal_places) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_decimal_places'], this.decimal_places));
+        }
+        if (this.max_digits != null && this.decimal_places != null && digits > (this.max_digits - this.decimal_places)) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_whole_digits'], (this.max_digits - this.decimal_places)));
+        }
+        
+        return value;
+    }
+};
 
 /*
     TODO Implement the rest of the fields

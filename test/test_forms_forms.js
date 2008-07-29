@@ -125,3 +125,7 @@ assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input i
 
 var p = new PersonNew({auto_id: true});
 assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input id="first_name_id" type="text" name="first_name" /></li>\n<li><label for="last_name">Last name:</label> <input type="text" name="last_name" id="last_name" /></li>\n');
+
+/*
+    TODO More tests after the rest of the fields are implemented.
+*/
