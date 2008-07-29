@@ -108,6 +108,35 @@ assert(f.clean('11') == 11);
 assert(f.clean(20) == 20);
 test.assertThrows(new util.ValidationError("Ensure this value is less than or equal to 20."), f, fields.IntegerField.prototype.clean, 21);
 
+// # FloatField ##################################################################
+
+var f = new fields.FloatField();
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.FloatField.prototype.clean, '');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.FloatField.prototype.clean, null);
+assert(f.clean('1') == 1.0);
+assert(typeof f.clean('1') == 'number');
+assert(f.clean('23') == 23.0);
+assert(f.clean('3.14') == 3.1400000000000001);
+assert(f.clean(3.14) == 3.1400000000000001);
+assert(f.clean(42) == 42.0);
+test.assertThrows(new util.ValidationError("Enter a number."), f, fields.FloatField.prototype.clean, 'a');
+assert(f.clean('1.0 ') == 1.0);
+assert(f.clean(' 1.0') == 1.0);
+assert(f.clean(' 1.0 ') == 1.0);
+test.assertThrows(new util.ValidationError("Enter a number."), f, fields.FloatField.prototype.clean, '1.0a');
+
+var f = new fields.FloatField({required: false});
+assert(f.clean('') == null);
+assert(f.clean(null) == null);
+assert(f.clean('1') == 1.0);
+
+// FloatField accepts min_value and max_value just like IntegerField:
+var f = new fields.FloatField({max_value: 1.5, min_value: 0.5});
+test.assertThrows(new util.ValidationError("Ensure this value is less than or equal to 1.5."), f, fields.FloatField.prototype.clean, '1.6');
+test.assertThrows(new util.ValidationError("Ensure this value is greater than or equal to 0.5."), f, fields.FloatField.prototype.clean, '0.4');
+assert(f.clean('1.5') == 1.5);
+assert(f.clean('0.5') == 0.5);
+
 /*
     TODO Write tests for the rest of the fields
 */

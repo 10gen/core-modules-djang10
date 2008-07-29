@@ -177,6 +177,54 @@ IntegerField.prototype = {
     }
 }
 
+var FloatField = fields.FloatField = function(params) {
+    params = {
+        max_value: null,
+        min_value: null
+    }.merge(params || {});
+    
+    this.max_value = params.max_value;
+    this.min_value = params.min_value;
+    
+    Field.call(this, params);
+};
+
+FloatField.prototype = {
+    __proto__: Field.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a number.',
+        'max_value': 'Ensure this value is less than or equal to %s.',
+        'min_value': 'Ensure this value is greater than or equal to %s.'
+    },
+    
+    clean: function(value) {
+        Field.prototype.clean.call(this, value);
+        
+        if (value == null || (typeof(value) == 'string' && value == ''))
+            return null;
+        
+        // convert to string and trim
+        value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
+        
+        if (/(^\d+\.?$)|(^\d*\.\d+$)/.test(value)) {
+            value = Number(value);
+        }
+        else {
+            throw new util.ValidationError(this.error_messages['invalid']);
+        }
+        
+        if (this.max_value != null && value > this.max_value) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_value'], this.max_value));
+        }
+        if (this.min_value != null && value < this.min_value) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['min_value'], this.min_value));
+        }
+        
+        return value;
+    }
+}
+
 /*
     TODO Implement the rest of the fields
 */
