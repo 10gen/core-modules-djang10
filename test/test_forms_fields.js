@@ -188,6 +188,42 @@ assert(f.clean('0.5') == 0.5);
 assert(f.clean('.5') == 0.5);
 assert(f.clean('00.50') == 0.50);
 
+// # DateField ###################################################################
+
+var f = new fields.DateField();
+assert(f.clean(new Date(2006, 9, 25)) == new Date(2006, 9, 25));
+assert(f.clean(Date.parse('2006-25-10 14:30')) == new Date(2006, 9, 25));
+assert(f.clean(new Date(2006, 9, 25, 14, 30, 59)) == new Date(2006, 9, 25));
+assert(f.clean(Date.parse('2006-25-10 14:30:59')) == new Date(2006, 9, 25));
+assert(f.clean('2006-10-25') == new Date(2006, 9, 25));
+assert(f.clean('10/25/2006') == new Date(2006, 9, 25));
+assert(f.clean('10/25/06') == new Date(2006, 9, 25));
+assert(f.clean('Oct 25 2006') == new Date(2006, 9, 25));
+assert(f.clean('October 25 2006') == new Date(2006, 9, 25));
+assert(f.clean('October 25, 2006') == new Date(2006, 9, 25));
+assert(f.clean('25 October 2006') == new Date(2006, 9, 25));
+assert(f.clean('25 October, 2006') == new Date(2006, 9, 25));
+test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '2006-4-32');
+test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '200a-10-25');
+test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '25/10/06');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.DateField.prototype.clean, null);
+
+var f = new fields.DateField({required: false});
+assert(f.clean(null) == null);
+assert(f.clean('') == null);
+
+// DateField accepts an optional input_formats parameter:
+var f = new fields.DateField({input_formats: ['%Y %m %d']});
+assert(f.clean(new Date(2006, 10, 25)) == new Date(2006, 10, 25));
+assert(f.clean(new Date(2006, 10, 25, 14, 30)) == new Date(2006, 10, 25));
+assert(f.clean('2006 10 25') == new Date(2006, 9, 25));
+
+// The input_formats parameter overrides all default input formats,
+// so the default formats won't work unless you specify them:
+test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '2006-10-25');
+test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '10/25/2006');
+test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '10/25/06');
+
 /*
     TODO Write tests for the rest of the fields
 */

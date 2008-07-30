@@ -297,6 +297,57 @@ DecimalField.prototype = {
     }
 };
 
+var DateField = fields.DateField = function(params) {
+    params = {
+        input_formats: null
+    }.merge(params || {});
+    
+    Field.call(this, params);
+    this.input_formats = params.input_formats || DateField.DEFAULT_DATE_INPUT_FORMATS;
+};
+
+DateField.DEFAULT_DATE_INPUT_FORMATS = [
+    '%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y', // '2006-10-25', '10/25/2006', '10/25/06'
+    '%b %d %Y', '%b %d, %Y',            // 'Oct 25 2006', 'Oct 25, 2006'
+    '%d %b %Y', '%d %b, %Y',            // '25 Oct 2006', '25 Oct, 2006'
+    '%B %d %Y', '%B %d, %Y',            // 'October 25 2006', 'October 25, 2006'
+    '%d %B %Y', '%d %B, %Y',            // '25 October 2006', '25 October, 2006'
+];
+
+DateField.prototype = {
+    __proto__: Field.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a valid date.'
+    },
+    
+    clean: function(value) {
+        Field.prototype.clean.call(this, value);
+        
+        if (value == null || (typeof(value) == 'string' && value == ''))
+            return null;
+        
+        if (typeof(value) == 'object' && value.constructor == Date) {
+            return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+        }
+        
+        if (typeof(value) == 'string') {
+            for (var i in this.input_formats) {
+                var format = this.input_formats[i];
+                
+                try {
+                    var d = util.strptime(value, format);
+                    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+                }
+                catch (e if e.constructor == util.ValueError) {
+                    continue;
+                }
+            }
+            throw new util.ValidationError(this.error_messages['invalid']);
+        }
+    }
+}
+
 /*
     TODO Implement the rest of the fields
 */
