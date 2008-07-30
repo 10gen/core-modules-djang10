@@ -166,10 +166,7 @@ test.assertThrows(new util.ValidationError("Ensure that there are no more than 2
 test.assertThrows(new util.ValidationError("Ensure that there are no more than 2 digits before the decimal point."), f, fields.DecimalField.prototype.clean, '123.4');
 assert(f.clean('-12.34') == -12.34);
 test.assertThrows(new util.ValidationError("Ensure that there are no more than 4 digits in total."), f, fields.DecimalField.prototype.clean, '-123.45');
-/*
-    TODO enable this after Number is fixed
-*/
-//assert(f.clean('-.12') == -0.12);
+assert(f.clean('-.12') == -0.12);
 assert(f.clean('-00.12') == -0.12);
 assert(f.clean('-000.12') == -0.12);
 test.assertThrows(new util.ValidationError("Ensure that there are no more than 2 decimal places."), f, fields.DecimalField.prototype.clean, '-000.123');
@@ -188,10 +185,7 @@ test.assertThrows(new util.ValidationError("Ensure this value is less than or eq
 test.assertThrows(new util.ValidationError("Ensure this value is greater than or equal to 0.5."), f, fields.DecimalField.prototype.clean, '0.4');
 assert(f.clean('1.5') == 1.5);
 assert(f.clean('0.5') == 0.5);
-/*
-    TODO enable this after Number is fixed
-*/
-//assert(f.clean('.5') == 0.5);
+assert(f.clean('.5') == 0.5);
 assert(f.clean('00.50') == 0.50);
 
 /*

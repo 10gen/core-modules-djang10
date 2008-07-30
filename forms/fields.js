@@ -262,9 +262,6 @@ DecimalField.prototype = {
         
         // convert to string and trim
         value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
-        
-        // fix for Number('-.12') => 12
-        value = value.replace(/^-\./, '')
 
         if (/(^-?\d+\.?$)|(^-?\d*\.\d+$)/.test(value)) {
             var pieces = value.replace('-', '').split('.');
