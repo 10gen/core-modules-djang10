@@ -38,12 +38,7 @@ assert(util.strptime("monday a", "%A a") == new Date(1900, 0, 1, 0, 0));
 assert(util.strptime("\w", "\w") == new Date(1900, 0, 1, 0, 0));
 test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "a", "\w");
 test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "\w", "a");
-assert(util.strptime("11 08", "%m %y") == new Date(2008, 11, 1));
-
-/*
-    TODO more tests for strptime.
-        - All directives
-*/
+assert(util.strptime("11 08", "%m %y") == new Date(2008, 10, 1));
 
 /**
  * conditional_escape tests

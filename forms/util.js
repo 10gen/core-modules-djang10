@@ -21,8 +21,9 @@ core.content.html();
 /**
 An emulation of python's strptime method.
 
-Note: uses 0-based month indices to be consistant with JavaScript strftime
-rather than 1-based, which would be consistant with python strftime & strptime.
+Note: reads 1-based month indices to be consistant with Python strftime
+rather than 0-based, which would be consistant with JavaScript Date object.
+Months are still stored as 0-based.
 
 Note: doesn't accept %c %j %u %w %W %x %X or %Z as of now. Also doesn't make use
 of any weekday info that is parsed in order to calculate the date.
@@ -194,10 +195,10 @@ var generateHourFunc = function(group_number, clock) {
 var generateMonthFunc = function(group_number) {
     return function(match, date) {
         var month = Number(match[group_number]);
-        if (month < 0 || month > 11) {
+        if (month < 1 || month > 12) {
             throw new ValueError("Date string did not match format.");
         }
-        date.setMonth(month);
+        date.setMonth(month - 1);
     };
 };
 
