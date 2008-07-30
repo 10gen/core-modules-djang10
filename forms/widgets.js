@@ -446,14 +446,14 @@ RadioSelect.prototype = {
     
     render: function(name, value, attrs, choices) {
         return this.get_renderer(name, value, attrs, choices).render();
+    },
+    
+    id_for_label: function(id_) {
+        if (id_) {
+            id_ += '_0';
+        }
+        return id_;
     }
-};
-
-RadioSelect.id_for_label = function(id_) {
-    if (id_) {
-        id_ += '_0';
-    }
-    return id_;
 };
 
 var CheckboxSelectMultiple = widgets.CheckboxSelectMultiple = function() {
@@ -499,14 +499,14 @@ CheckboxSelectMultiple.prototype = {
         }
         output += '</ul>';
         return djang10.mark_safe(output);
+    },
+    
+    id_for_label: function(id_) {
+        if (id_)
+            id_ += '_0';
+        return id_;
     }
 }
-
-CheckboxSelectMultiple.id_for_label = function(id_) {
-    if (id_)
-        id_ += '_0';
-    return id_;
-};
 
 var MultiWidget = widgets.MultiWidget = function(widgets, attrs) {
     for (var i in widgets) {
@@ -582,14 +582,14 @@ MultiWidget.prototype = {
     
     decompress: function(value) {
         throw util.NotImplementedError('Subclasses must implement this method.');
+    },
+    
+    id_for_label: function(id_) {
+        if (id_)
+            id_ += '_0';
+        return id_;
     }
 }
-
-MultiWidget.id_for_label = function(id_) {
-    if (id_)
-        id_ += '_0';
-    return id_;
-};
 
 MultiWidget.prototype.__defineGetter__('media', function() {
     /*
