@@ -18,6 +18,34 @@ core.modules.djang10.forms.util();
 core.modules.djang10.test.test();
 
 /**
+ * strptime tests
+ */
+assert(util.strptime("30 Nov 00", "%d %b %y") == new Date(2000, 10, 30));
+test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "", "%d %b %y");
+test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "30 Nov 00 7:59", "%d %b %y");
+test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "30 Nove 00", "%d %b %y");
+test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "32 Nov 00", "%d %b %y");
+test.assertThrows(new util.ValueError("First argument to strptime must be of type string."), null, util.strptime, 10, "%d %b %y");
+test.assertThrows(new util.ValueError("Second argument to strptime must be of type string."), null, util.strptime, "30 Nov 00", 10);
+test.assertThrows(new util.ValueError("First argument to strptime must be of type string."), null, util.strptime);
+test.assertThrows(new util.ValueError("Unrecognized or unimplemented directive %t."), null, util.strptime, "30 Nov 00", "%d %t %y");
+assert(util.strptime("Mon Jun 28 8:20:01 2008") == new Date(2008, 5, 28, 8, 20, 01));
+assert(util.strptime("30 november 2000", "%d %B %Y") == new Date(2000, 10, 30));
+assert(util.strptime("8:00 sec-12", "%H:%M sec-%S") == new Date(1900, 0, 1, 8, 0, 12));
+assert(util.strptime("08:00 AM", "%I:%M %p") == new Date(1900, 0, 1, 8, 0));
+assert(util.strptime("Mon 08:12 pm", "%a %I:%M %p") == new Date(1900, 0, 1, 20, 12));
+assert(util.strptime("monday a", "%A a") == new Date(1900, 0, 1, 0, 0));
+assert(util.strptime("\w", "\w") == new Date(1900, 0, 1, 0, 0));
+test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "a", "\w");
+test.assertThrows(new util.ValueError("Date string did not match format."), null, util.strptime, "\w", "a");
+assert(util.strptime("11 08", "%m %y") == new Date(2008, 11, 1));
+
+/*
+    TODO more tests for strptime.
+        - All directives
+*/
+
+/**
  * conditional_escape tests
  */
 assert(util.conditional_escape("") == "");
