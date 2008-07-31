@@ -311,7 +311,7 @@ DateField.DEFAULT_DATE_INPUT_FORMATS = [
     '%b %d %Y', '%b %d, %Y',            // 'Oct 25 2006', 'Oct 25, 2006'
     '%d %b %Y', '%d %b, %Y',            // '25 Oct 2006', '25 Oct, 2006'
     '%B %d %Y', '%B %d, %Y',            // 'October 25 2006', 'October 25, 2006'
-    '%d %B %Y', '%d %B, %Y',            // '25 October 2006', '25 October, 2006'
+    '%d %B %Y', '%d %B, %Y'             // '25 October 2006', '25 October, 2006'
 ];
 
 DateField.prototype = {
@@ -339,12 +339,60 @@ DateField.prototype = {
                     var d = util.strptime(value, format);
                     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
                 }
-                catch (e if e.constructor == util.ValueError) {
+                catch (e if e.constructor === util.ValueError) {
                     continue;
                 }
             }
-            throw new util.ValidationError(this.error_messages['invalid']);
         }
+        throw new util.ValidationError(this.error_messages['invalid']);
+    }
+}
+
+var TimeField = fields.TimeField = function(params) {
+    params = {
+        input_formats: null
+    }.merge(params || {});
+    
+    Field.call(this, params);
+    this.input_formats = params.input_formats || TimeField.DEFAULT_TIME_INPUT_FORMATS;
+};
+
+TimeField.DEFAULT_TIME_INPUT_FORMATS = [
+    '%H:%M:%S',     // '14:30:59'
+    '%H:%M'         // '14:30'
+];
+
+TimeField.prototype = {
+    __proto__: Field.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a valid time.'
+    },
+    
+    clean: function(value) {
+        Field.prototype.clean.call(this, value);
+        
+        if (value == null || (typeof(value) == 'string' && value == ''))
+            return null;
+        
+        if (typeof(value) === 'object' && value.constructor == Date) {
+            return new Date(0, 0, 0, value.getHours(), value.getMinutes(), value.getSeconds());
+        }
+        
+        if (typeof(value) === 'string') {
+            for (var i in this.input_formats) {
+                var format = this.input_formats[i];
+                
+                try {
+                    var d = util.strptime(value, format);
+                    return new Date(0, 0, 0, d.getHours(), d.getMinutes(), d.getSeconds());
+                }
+                catch (e if e.constructor === util.ValueError) {
+                    continue;
+                }
+            }
+        }
+        throw new util.ValidationError(this.error_messages['invalid']);
     }
 }
 

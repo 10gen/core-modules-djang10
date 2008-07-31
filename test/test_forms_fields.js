@@ -224,6 +224,27 @@ test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.Dat
 test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '10/25/2006');
 test.assertThrows(new util.ValidationError("Enter a valid date."), f, fields.DateField.prototype.clean, '10/25/06');
 
+// # TimeField ###################################################################
+
+var f = new fields.TimeField();
+assert(f.clean(new Date(0, 0, 0, 14, 25)) == new Date(0, 0, 0, 14, 25));
+assert(f.clean(new Date(0, 0, 0, 14, 25, 59)) == new Date(0, 0, 0, 14, 25, 59));
+assert(f.clean('14:25') == new Date(0, 0, 0, 14, 25));
+assert(f.clean('14:25:59') == new Date(0, 0, 0, 14, 25, 59));
+test.assertThrows(new util.ValidationError("Enter a valid time."), f, fields.DateField.prototype.clean, 'hello');
+test.assertThrows(new util.ValidationError("Enter a valid time."), f, fields.DateField.prototype.clean, '1:24 p.m.');
+
+// TimeField accepts an optional input_formats parameter:
+var f = new fields.TimeField({input_formats: ['%I:%M %p']});
+assert(f.clean(new Date(2006, 5, 5, 14, 25)) == new Date(0, 0, 0, 14, 25));
+assert(f.clean(new Date(0, 5, 5, 14, 25, 59)) == new Date(0, 0, 0, 14, 25, 59));
+assert(f.clean('4:25 AM') == new Date(0, 0, 0, 4, 25));
+assert(f.clean('4:25 PM') == new Date(0, 0, 0, 16, 25));
+
+// The input_formats parameter overrides all default input formats,
+// so the default formats won't work unless you specify them:
+test.assertThrows(new util.ValidationError("Enter a valid time."), f, fields.DateField.prototype.clean, '14:30:25');
+
 /*
     TODO Write tests for the rest of the fields
 */
