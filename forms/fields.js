@@ -463,8 +463,6 @@ DateTimeField.prototype = {
 var RegexField = fields.RegexField = function(params) {
     params = {
         regex: '',
-        max_length: null,
-        min_length: null,
         error_messages: {}
     }.merge(params || {});
     
@@ -488,10 +486,10 @@ RegexField.prototype = {
     clean: function(value) {
         CharField.prototype.clean.call(this, value);
         
-        if (value === "") {
-            return value;
+        if (value === null || value === "") {
+            return '';
         }
-        if (typeof(value) !== 'string' || !this.regex.test(value)) {
+        if (!this.regex.test(value)) {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
         
@@ -499,6 +497,20 @@ RegexField.prototype = {
     }
 };
 
+var EmailField = fields.EmailField = function(params) {
+    params = params || {};
+    params.regex = /^\w[\w\+\.]*@\w+(\.\w+)+$/;
+
+    RegexField.call(this, params);
+};
+
+EmailField.prototype = {
+    __proto__: RegexField.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a valid e-mail address.'
+    }
+};
 /*
     TODO Implement the rest of the fields
 */

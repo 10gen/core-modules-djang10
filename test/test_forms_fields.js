@@ -320,6 +320,30 @@ assert(f.clean('1234567890') == '1234567890');
 test.assertThrows(new util.ValidationError("Ensure this value has at most 10 characters (it has 11)."), f, fields.RegexField.prototype.clean, '12345678901');
 test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, '12345a');
 
+// # EmailField ##################################################################
+
+var f = new fields.EmailField();
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.EmailField.prototype.clean, '');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.EmailField.prototype.clean, null);
+assert(f.clean('person@example.com') == 'person@example.com');
+test.assertThrows(new util.ValidationError("Enter a valid e-mail address."), f, fields.EmailField.prototype.clean, 'foo');
+test.assertThrows(new util.ValidationError("Enter a valid e-mail address."), f, fields.EmailField.prototype.clean, 'foo@');
+test.assertThrows(new util.ValidationError("Enter a valid e-mail address."), f, fields.EmailField.prototype.clean, 'foo@bar');
+
+var f = new fields.EmailField({required: false});
+assert(f.clean('') == '');
+assert(f.clean(null) == '');
+assert(f.clean('person@example.com') == 'person@example.com');
+test.assertThrows(new util.ValidationError("Enter a valid e-mail address."), f, fields.EmailField.prototype.clean, 'foo');
+test.assertThrows(new util.ValidationError("Enter a valid e-mail address."), f, fields.EmailField.prototype.clean, 'foo@');
+test.assertThrows(new util.ValidationError("Enter a valid e-mail address."), f, fields.EmailField.prototype.clean, 'foo@bar');
+
+// EmailField also access min_length and max_length parameters, for convenience.
+var f = new fields.EmailField({min_length: 10, max_length: 15});
+test.assertThrows(new util.ValidationError("Ensure this value has at least 10 characters (it has 9)."), f, fields.EmailField.prototype.clean, 'a@foo.com');
+assert(f.clean('alf@foo.com') == 'alf@foo.com');
+test.assertThrows(new util.ValidationError("Ensure this value has at most 15 characters (it has 20)."), f, fields.EmailField.prototype.clean, 'alf123456789@foo.com');
+
 /*
     TODO Write tests for the rest of the fields
 */
