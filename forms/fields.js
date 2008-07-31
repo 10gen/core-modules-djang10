@@ -427,14 +427,14 @@ DateTimeField.prototype = {
     clean: function(value) {
         Field.prototype.clean.call(this, value);
         
-        if (value == null || (typeof(value) == 'string' && value == ''))
+        if (value === null || (typeof(value) === 'string' && value === ''))
             return null;
         
-        if (typeof(value) === 'object' && value.constructor == Date) {
+        if (typeof(value) === 'object' && value.constructor === Date) {
             return value;
         }
         
-        if (typeof(value) === 'object' && value.constructor == Array) {
+        if (typeof(value) === 'object' && value.constructor === Array) {
             // ie: input comes from a SplitDateTimeWidget.
             if (value.length != 2) {
                 throw new util.ValidationError(this.error_messages['invalid']);
@@ -457,7 +457,46 @@ DateTimeField.prototype = {
         }
         throw new util.ValidationError(this.error_messages['invalid']);
     }
-}
+};
+
+var RegexField = fields.RegexField = function(params) {
+    params = {
+        regex: '',
+        max_length: null,
+        min_length: null,
+        error_messages: {}
+    }.merge(params || {});
+    
+    // error_message is just copied to e_m['invalid'] for backwards compatibility
+    if (params.error_message) {
+        params.error_messages['invalid'] = params.error_message;
+    }
+    
+    CharField.call(this, params);
+    if (typeof(params.regex) === 'string') {
+        this.regex = RegExp(params.regex);
+    }
+    else {
+        this.regex = params.regex;
+    }
+};
+
+RegexField.prototype = {
+    __proto__: CharField.prototype,
+    
+    clean: function(value) {
+        CharField.prototype.clean.call(this, value);
+        
+        if (value === "") {
+            return value;
+        }
+        if (typeof(value) !== 'string' || !this.regex.test(value)) {
+            throw new util.ValidationError(this.error_messages['invalid']);
+        }
+        
+        return value;
+    }
+};
 
 /*
     TODO Implement the rest of the fields

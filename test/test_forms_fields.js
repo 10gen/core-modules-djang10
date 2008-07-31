@@ -281,6 +281,45 @@ var f = new fields.DateTimeField({required: false});
 assert(f.clean(null) == null);
 assert(f.clean('') == null);
 
+// # RegexField ##################################################################
+
+var f = new fields.RegexField({regex: '^\\d[A-F]\\d$'});
+assert(f.clean('2A2') == '2A2');
+assert(f.clean('3F3') == '3F3');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, '3G3');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, ' 2A2');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, '2A2 ');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.RegexField.prototype.clean, '');
+
+var f = new fields.RegexField({regex: '^\\d[A-F]\\d$', required: false});
+assert(f.clean('2A2') == '2A2');
+assert(f.clean('3F3') == '3F3');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, '3G3');
+assert(f.clean('') == '');
+
+// Alternatively, RegexField can take a compiled regular expression:
+var f = new fields.RegexField({regex: RegExp('^\\d[A-F]\\d$')});
+assert(f.clean('2A2') == '2A2');
+assert(f.clean('3F3') == '3F3');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, '3G3');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, ' 2A2');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, '2A2 ');
+
+// RegexField takes an optional error_message argument:
+var f = new fields.RegexField({regex: /^\d\d\d\d$/, error_message: 'Enter a four-digit number.'});
+assert(f.clean('1234') == '1234');
+test.assertThrows(new util.ValidationError("Enter a four-digit number."), f, fields.RegexField.prototype.clean, '123');
+test.assertThrows(new util.ValidationError("Enter a four-digit number."), f, fields.RegexField.prototype.clean, 'abcd');
+
+// RegexField also access min_length and max_length parameters, for convenience.
+var f = new fields.RegexField({regex: '^\\d+$', min_length: 5, max_length: 10});
+test.assertThrows(new util.ValidationError("Ensure this value has at least 5 characters (it has 3)."), f, fields.RegexField.prototype.clean, '123');
+test.assertThrows(new util.ValidationError("Ensure this value has at least 5 characters (it has 3)."), f, fields.RegexField.prototype.clean, 'abc');
+assert(f.clean('12345') == '12345');
+assert(f.clean('1234567890') == '1234567890');
+test.assertThrows(new util.ValidationError("Ensure this value has at most 10 characters (it has 11)."), f, fields.RegexField.prototype.clean, '12345678901');
+test.assertThrows(new util.ValidationError("Enter a valid value."), f, fields.RegexField.prototype.clean, '12345a');
+
 /*
     TODO Write tests for the rest of the fields
 */
