@@ -245,6 +245,42 @@ assert(f.clean('4:25 PM') == new Date(0, 0, 0, 16, 25));
 // so the default formats won't work unless you specify them:
 test.assertThrows(new util.ValidationError("Enter a valid time."), f, fields.DateField.prototype.clean, '14:30:25');
 
+// # DateTimeField ###############################################################
+
+var f = new fields.DateTimeField();
+assert(f.clean(new Date(2006, 9, 25)) == new Date(2006, 9, 25, 0, 0));
+assert(f.clean(new Date(2006, 9, 25, 14, 30)) == new Date(2006, 9, 25, 14, 30));
+assert(f.clean(new Date(2006, 9, 25, 14, 30, 59)) == new Date(2006, 9, 25, 14, 30, 59));
+assert(f.clean('2006-10-25 14:30:45') == new Date(2006, 9, 25, 14, 30, 45));
+assert(f.clean('2006-10-25 14:30:00') == new Date(2006, 9, 25, 14, 30));
+assert(f.clean('2006-10-25 14:30') == new Date(2006, 9, 25, 14, 30));
+assert(f.clean('2006-10-25') == new Date(2006, 9, 25, 0, 0));
+assert(f.clean('10/25/2006 14:30:45') == new Date(2006, 9, 25, 14, 30, 45));
+assert(f.clean('10/25/2006 14:30:00') == new Date(2006, 9, 25, 14, 30));
+assert(f.clean('10/25/2006 14:30') == new Date(2006, 9, 25, 14, 30));
+assert(f.clean('10/25/2006') == new Date(2006, 9, 25, 0, 0));
+assert(f.clean('10/25/06 14:30:45') == new Date(2006, 9, 25, 14, 30, 45));
+assert(f.clean('10/25/06 14:30:00') == new Date(2006, 9, 25, 14, 30));
+assert(f.clean('10/25/06 14:30') == new Date(2006, 9, 25, 14, 30));
+assert(f.clean('10/25/06') == new Date(2006, 9, 25, 0, 0));
+test.assertThrows(new util.ValidationError("Enter a valid date/time."), f ,fields.DateTimeField.prototype.clean, 'hello');
+test.assertThrows(new util.ValidationError("Enter a valid date/time."), f ,fields.DateTimeField.prototype.clean, '2006-10-25 4:30 p.m.');
+
+// DateField accepts an optional input_formats parameter:
+var f = new fields.DateTimeField({input_formats: ['%Y %m %d %I:%M %p']});
+assert(f.clean(new Date(2006, 9, 25)) == new Date(2006, 9, 25, 0, 0));
+assert(f.clean(new Date(2006, 9, 25, 14, 30)) == new Date(2006, 9, 25, 14, 30));
+assert(f.clean(new Date(2006, 9, 25, 14, 30, 59)) == new Date(2006, 9, 25, 14, 30, 59));
+assert(f.clean('2006 10 25 2:30 PM') == new Date(2006, 9, 25, 14, 30));
+
+// The input_formats parameter overrides all default input formats,
+// so the default formats won't work unless you specify them:
+test.assertThrows(new util.ValidationError("Enter a valid date/time."), f ,fields.DateTimeField.prototype.clean, '2006-10-25 14:30:45');
+
+var f = new fields.DateTimeField({required: false});
+assert(f.clean(null) == null);
+assert(f.clean('') == null);
+
 /*
     TODO Write tests for the rest of the fields
 */

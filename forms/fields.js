@@ -380,12 +380,75 @@ TimeField.prototype = {
         }
         
         if (typeof(value) === 'string') {
-            for (var i in this.input_formats) {
+            for (var i  = 0; i < this.input_formats.length; i++) {
                 var format = this.input_formats[i];
                 
                 try {
                     var d = util.strptime(value, format);
                     return new Date(0, 0, 0, d.getHours(), d.getMinutes(), d.getSeconds());
+                }
+                catch (e if e.constructor === util.ValueError) {
+                    continue;
+                }
+            }
+        }
+        throw new util.ValidationError(this.error_messages['invalid']);
+    }
+};
+
+var DateTimeField = fields.DateTimeField = function(params) {
+    params = {
+        input_formats: null
+    }.merge(params || {});
+    
+    Field.call(this, params);
+    this.input_formats = params.input_formats || DateTimeField.DEFAULT_DATETIME_INPUT_FORMATS;
+};
+
+DateTimeField.DEFAULT_DATETIME_INPUT_FORMATS = [
+    '%Y-%m-%d %H:%M:%S',     // '2006-10-25 14:30:59'
+    '%Y-%m-%d %H:%M',        // '2006-10-25 14:30'
+    '%Y-%m-%d',              // '2006-10-25'
+    '%m/%d/%Y %H:%M:%S',     // '10/25/2006 14:30:59'
+    '%m/%d/%Y %H:%M',        // '10/25/2006 14:30'
+    '%m/%d/%Y',              // '10/25/2006'
+    '%m/%d/%y %H:%M:%S',     // '10/25/06 14:30:59'
+    '%m/%d/%y %H:%M',        // '10/25/06 14:30'
+    '%m/%d/%y',              // '10/25/06'
+];
+
+DateTimeField.prototype = {
+    __proto__: Field.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a valid date/time.'
+    },
+    
+    clean: function(value) {
+        Field.prototype.clean.call(this, value);
+        
+        if (value == null || (typeof(value) == 'string' && value == ''))
+            return null;
+        
+        if (typeof(value) === 'object' && value.constructor == Date) {
+            return value;
+        }
+        
+        if (typeof(value) === 'object' && value.constructor == Array) {
+            // ie: input comes from a SplitDateTimeWidget.
+            if (value.length != 2) {
+                throw new util.ValidationError(this.error_messages['invalid']);
+            }
+            // just join the date and time...
+            value = value[0] + " " + value[1];
+        }
+        
+        if (typeof(value) === 'string') {
+            for (var i = 0; i < this.input_formats.length; i++) {
+                var format = this.input_formats[i];
+            
+                try {
+                    return util.strptime(value, format);
                 }
                 catch (e if e.constructor === util.ValueError) {
                     continue;
