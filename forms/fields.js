@@ -36,8 +36,6 @@ var Field = fields.Field = function(params) {
     this.help_text = params.help_text;
     if(params.widget != null)
         this.widget = params.widget;
-    else
-        this.widget = widgets.TextInput
     
     //instantiate the widget if it needs it
     if (this.widget instanceof Function) {
@@ -62,6 +60,7 @@ var Field = fields.Field = function(params) {
 };
 
 Field.prototype = {
+    widget: widgets.TextInput,
     hidden_widget: widgets.HiddenInput,
     default_error_messages: {
         required: "This field is required.",
@@ -419,6 +418,8 @@ DateTimeField.DEFAULT_DATETIME_INPUT_FORMATS = [
 
 DateTimeField.prototype = {
     __proto__: Field.prototype,
+    
+    widget: widgets.DateTimeInput,
     
     default_error_messages: {
         'invalid': 'Enter a valid date/time.'
