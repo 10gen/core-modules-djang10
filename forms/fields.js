@@ -597,6 +597,31 @@ URLField.prototype = {
     }
 };
 
+var BooleanField = fields.BooleanField = function(params) {
+    Field.apply(this, [params]);
+};
+
+BooleanField.prototype = {
+    __proto__: Field.prototype,
+    
+    widget: widgets.CheckboxInput,
+    
+    clean: function(value) {
+        if (value === 'false') {
+            value = false;
+        } else {
+            value = util.bool(value);
+        }
+        
+        Field.prototype.clean.apply(this, [value]);
+        
+        if (!value && this.required) {
+            throw new util.ValidationError(this.error_messages['required']);
+        }
+        return value;
+    }
+};
+
 /*
     TODO Implement the rest of the fields
 */

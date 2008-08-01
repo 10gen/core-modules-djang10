@@ -430,6 +430,32 @@ assert(f.clean('http://example.com') == 'http://example.com/');
 // URLField shouldn't change the path if it was given
 assert(f.clean('http://example.com/test') == 'http://example.com/test');
 
+// # BooleanField ################################################################
+
+var f = new fields.BooleanField();
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.BooleanField.prototype.clean, '');
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.BooleanField.prototype.clean, null);
+assert(f.clean(true) === true);
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.BooleanField.prototype.clean, false);
+assert(f.clean(1) === true);
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.BooleanField.prototype.clean, 0);
+assert(f.clean('Django rocks') === true);
+assert(f.clean('true') === true);
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.BooleanField.prototype.clean, 'false');
+
+var f = new fields.BooleanField({required: false});
+assert(f.clean('') === false);
+assert(f.clean(null) === false);
+assert(f.clean(true) === true);
+assert(f.clean(false) === false);
+assert(f.clean(1) === true);
+assert(f.clean(0) === false);
+assert(f.clean('Djang10 rocks') === true);
+
+// A form's BooleanField with a hidden widget will output the string 'false', so
+// that should clean to the boolean value false:
+assert(f.clean('false') === false);
+
 /*
     TODO Write tests for the rest of the fields
 */
