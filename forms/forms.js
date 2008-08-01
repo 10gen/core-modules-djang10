@@ -177,9 +177,13 @@ Form.prototype = {
             
             var value = field.widget.value_from_datadict(this.data, this.files, this.add_prefix(name));
             try {
-                //TODO: special case FileField
-                
-                value = field.clean(value);
+                if (field instanceof fields.FileField) {
+                    var initial = this.initial[name] || field.initial;
+                    value = field.clean(value, initial);
+                }
+                else {
+                    value = field.clean(value);
+                }
                 if (this['clean_' + name]) {
                     value = this['clean_' + name] ();
                 }
