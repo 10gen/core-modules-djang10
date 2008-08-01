@@ -511,6 +511,45 @@ EmailField.prototype = {
         'invalid': 'Enter a valid e-mail address.'
     }
 };
+
+var FileField = fields.FileField = function(param) {
+    Field.call(this, params);
+};
+
+FileField.prototype = {
+    __proto__: Field.prototype,
+    
+    widget: widgets.FileInput,
+    
+    default_error_messages: {
+        'invalid': 'No file was submitted. Check the encoding type on the form.',
+        'missing': 'No file was submitted.',
+        'empty': 'The submitted file is empty.'
+    },
+    
+    clean: function(data, initial) {
+        initial = initial || null;
+        
+        Field.prototype.clean.call(this, initial || data);
+        
+        if (!this.required && (data === null || data === '')) {
+            return null;
+        }
+        if (!data && initial) {
+            return initial;
+        }
+        
+        if (!data.filename) {
+            throw new util.ValidationError(this.error_messages['invalid']);
+        }
+        if (!data.length) {
+            throw new util.ValidationError(this.error_messages['empty']);
+        }
+        
+        return data;
+    }
+}
+
 /*
     TODO Implement the rest of the fields
 */

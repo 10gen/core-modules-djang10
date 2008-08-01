@@ -16,6 +16,7 @@
 
 core.modules.djang10.forms.fields();
 core.modules.djang10.test.test();
+core.file.file();
 
 /**
  * CharField tests
@@ -343,6 +344,33 @@ var f = new fields.EmailField({min_length: 10, max_length: 15});
 test.assertThrows(new util.ValidationError("Ensure this value has at least 10 characters (it has 9)."), f, fields.EmailField.prototype.clean, 'a@foo.com');
 assert(f.clean('alf@foo.com') == 'alf@foo.com');
 test.assertThrows(new util.ValidationError("Ensure this value has at most 15 characters (it has 20)."), f, fields.EmailField.prototype.clean, 'alf123456789@foo.com');
+
+// # FileField ##################################################################
+
+var f = new fields.FileField();
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.FileField.prototype.clean, '');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.FileField.prototype.clean, '', '');
+assert(f.clean('', 'files/test1.pdf') == 'files/test1.pdf');
+
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.FileField.prototype.clean, null);
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.FileField.prototype.clean, null, '');
+assert(f.clean(null, 'files/test2.pdf') == 'files/test2.pdf');
+
+test.assertThrows(new util.ValidationError("No file was submitted. Check the encoding type on the form."), f, fields.FileField.prototype.clean, openFile(''));
+test.assertThrows(new util.ValidationError("No file was submitted. Check the encoding type on the form."), f, fields.FileField.prototype.clean, openFile(''), '');
+assert(f.clean(null, 'files/test3.pdf') == 'files/test3.pdf');
+
+test.assertThrows(new util.ValidationError("No file was submitted. Check the encoding type on the form."), f, fields.FileField.prototype.clean, 'Some content that is not a file');
+
+test.assertThrows(new util.ValidationError("The submitted file is empty."), f, fields.FileField.prototype.clean, openFile('name'), null);
+test.assertThrows(new util.ValidationError("The submitted file is empty."), f, fields.FileField.prototype.clean, openFile('name'), '');
+
+var fakeFile = openFile('name');
+fakeFile.length = 20;
+
+assert((f.clean(fakeFile)).constructor === File);
+assert((f.clean(fakeFile, 'files/test4.pdf')).constructor === File);
+
 
 /*
     TODO Write tests for the rest of the fields
