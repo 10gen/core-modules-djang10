@@ -371,6 +371,64 @@ fakeFile.length = 20;
 assert((f.clean(fakeFile)).constructor === File);
 assert((f.clean(fakeFile, 'files/test4.pdf')).constructor === File);
 
+// # URLField ##################################################################
+
+var f = new fields.URLField();
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.URLField.prototype.clean, '');
+test.assertThrows(new util.ValidationError("This field is required."), f, fields.URLField.prototype.clean, null);
+assert(f.clean('http://localhost') == 'http://localhost/');
+assert(f.clean('http://example.com') == 'http://example.com/');
+assert(f.clean('http://www.example.com') == 'http://www.example.com/');
+assert(f.clean('http://www.example.com:8000/test') == 'http://www.example.com:8000/test');
+assert(f.clean('http://200.8.9.10') == 'http://200.8.9.10/');
+assert(f.clean('http://200.8.9.10:8000/test') == 'http://200.8.9.10:8000/test');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'foo');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://example');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://example.');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://.com');
+
+var f = new fields.URLField({required: false});
+assert(f.clean('') == '');
+assert(f.clean(null) == '');
+assert(f.clean('http://example.com') == 'http://example.com/');
+assert(f.clean('http://www.example.com') == 'http://www.example.com/');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'foo');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://example');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://example.');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://.com');
+
+// URLField takes an optional verify_exists parameter, which is false by default.
+// This verifies that the URL is live on the Internet and doesn't return a 404 or 500:
+var f = new fields.URLField({verify_exists: true});
+assert(f.clean('http://www.google.com') == 'http://www.google.com/');
+test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://example');
+test.assertThrows(new util.ValidationError("This URL appears to be a broken link."), f, fields.URLField.prototype.clean, 'http://www.broken.djangoproject.com');
+test.assertThrows(new util.ValidationError("This URL appears to be a broken link."), f, fields.URLField.prototype.clean, 'http://www.google.com/we-love-microsoft.html');
+
+var f = new fields.URLField({verify_exists: true, required: false});
+assert(f.clean('') == '');
+assert(f.clean('http://www.google.com') == 'http://www.google.com/');
+
+// URLField also access min_length and max_length parameters, for convenience.
+var f = new fields.URLField({min_length: 15, max_length: 20});
+test.assertThrows(new util.ValidationError("Ensure this value has at least 15 characters (it has 13)."), f, fields.URLField.prototype.clean, 'http://f.com');
+assert(f.clean('http://example.com') == 'http://example.com/');
+test.assertThrows(new util.ValidationError("Ensure this value has at most 20 characters (it has 38)."), f, fields.URLField.prototype.clean, 'http://abcdefghijklmnopqrstuvwxyz.com');
+
+// URLField should prepend 'http://' if no scheme was given
+var f = new fields.URLField({required: false});
+assert(f.clean('example.com') == 'http://example.com/');
+assert(f.clean('') == '');
+assert(f.clean('https://example.com') == 'https://example.com/');
+
+// URLField should append '/' if no path was given
+var f = new fields.URLField();
+assert(f.clean('http://example.com') == 'http://example.com/');
+
+// URLField shouldn't change the path if it was given
+assert(f.clean('http://example.com/test') == 'http://example.com/test');
 
 /*
     TODO Write tests for the rest of the fields

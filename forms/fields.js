@@ -17,6 +17,7 @@
 core.modules.djang10.util.object();
 core.modules.djang10.forms.widgets();
 core.modules.djang10.forms.util();
+core.net.url();
 
 fields = {};
 
@@ -548,7 +549,53 @@ FileField.prototype = {
         
         return data;
     }
-}
+};
+
+// NOTE: doesn't make use of a validator_user_agent right now
+var URLField = fields.URLField = function(params) {
+    params = {
+        max_length: null,
+        min_length: null,
+        verify_exists: false,
+    }.merge(params || {});
+    //               protocol         domain          tld   or localhost or ip                               port     the rest...
+    params.regex = /^https?:\/\/(?:(?:[A-Z0-9.\-]+\.)+[A-Z]{2,6}|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|\/\S+)$/i;    
+    RegexField.call(this, params);
+    
+    this.verify_exists = params.verify_exists;
+};
+
+URLField.prototype = {
+    __proto__: RegexField.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a valid URL.',
+        'invalid_link': 'This URL appears to be a broken link.'
+    },
+    
+    clean: function(value) {
+        if (value && value.indexOf('://') === -1) {
+            value = 'http://' + value;
+        }
+        var u = value && new URL(value);
+        if (value && !u.path) {
+            value += '/';
+        }
+        value = RegexField.prototype.clean.apply(this, [value]);
+        if (value === '') {
+            return value;
+        }
+        if (this.verify_exists) {
+            var req = new XMLHttpRequest("GET", value);
+            var res = req.send();
+            // TODO this should probably follow redirects and check that the resulting page actually exists
+            if (res.status >= 400) { // 400s and 500s are error codes
+                throw new util.ValidationError(this.error_messages['invalid_link']);
+            }
+        }
+        return value;
+    }
+};
 
 /*
     TODO Implement the rest of the fields
