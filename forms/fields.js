@@ -914,7 +914,7 @@ MultiValueField.prototype = {
     compress: function(data_list) {
         throw new util.NotImplementedError('Subclasses must implement this method.');
     }
-}
+};
 
 var SplitDateTimeField = fields.SplitDateTimeField = function(params) {
     params = {
@@ -951,8 +951,23 @@ SplitDateTimeField.prototype = {
         }
         return null;
     }
-}
+};
 
+var IPAddressField = fields.IPAddressField = function(params) {
+    params = (params || {}).merge({
+        regex: /^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$/
+    });
+    
+    RegexField.apply(this, [params]);
+};
+
+IPAddressField.prototype = {
+    __proto__: RegexField.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a valid IPv4 address.'
+    }
+};
 /*
     TODO Implement the rest of the fields
 */

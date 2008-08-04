@@ -612,6 +612,15 @@ test.assertThrows(new util.ValidationError(['Enter a valid time.']), f, fields.S
 test.assertThrows(new util.ValidationError(['Enter a valid time.']), f, fields.SplitDateTimeField.clean, ['2006-01-10']);
 test.assertThrows(new util.ValidationError(['Enter a valid date.']), f, fields.SplitDateTimeField.clean, ['', '7:30']);
 
+// IPAddressField
+
+var f = new fields.IPAddressField();
+assert(f.clean('192.168.0.0') === '192.168.0.0');
+test.assertThrows(new util.ValidationError('Enter a valid IPv4 address.'), f, fields.IPAddressField.clean, '999.999.999.999');
+test.assertThrows(new util.ValidationError('Enter a valid IPv4 address.'), f, fields.IPAddressField.clean, '192.168.0');
+test.assertThrows(new util.ValidationError('Enter a valid IPv4 address.'), f, fields.IPAddressField.clean, 'not an ip');
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.IPAddressField.clean, '');
+
 /*
     TODO Write tests for the rest of the fields
 */
