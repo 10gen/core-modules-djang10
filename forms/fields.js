@@ -968,8 +968,13 @@ IPAddressField.prototype = {
         'invalid': 'Enter a valid IPv4 address.'
     }
 };
-/*
-    TODO Implement the rest of the fields
-*/
+
+// Right now just a pass-through for FileField. In Django it checks that the
+// file is a valid image but that is a lot of work without PIL.
+var ImageField = fields.ImageField = function(params) {
+    FileField.apply(this, [params]);
+};
+
+ImageField.prototype.__proto__ = FileField.prototype;
 
 return fields;
