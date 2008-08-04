@@ -83,12 +83,12 @@ assert(p.is_valid());
 assert(p.cleaned_data.first_name == 'John');
 assert(p.cleaned_data.last_name == 'Lennon');
 
-var OptionalPersonForm = function(params) {
+var OptionalPersonForm = function() {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
     this.nick_name = new fields.CharField({required: false});
     
-    forms.Form.call(this, params);
+    forms.Form.apply(this, arguments);
 };
 
 OptionalPersonForm.prototype.__proto__ = forms.Form.prototype;
@@ -111,11 +111,11 @@ assert(p.as_ul() == '<li><label for="first_name">First name:</label> <input type
 var p = new Person({auto_id: false});
 assert(p.as_ul() == '<li>First name: <input type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n');
 
-PersonNew = function(params) {
+var PersonNew = function() {
     this.first_name = new fields.CharField({widget: new widgets.TextInput({'id': 'first_name_id'})});
     this.last_name = new fields.CharField();
     
-    forms.Form.call(this, params);
+    forms.Form.apply(this, arguments);
 };
 
 PersonNew.prototype.__proto__ = forms.Form.prototype;
@@ -126,6 +126,79 @@ assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input i
 var p = new PersonNew({auto_id: true});
 assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input id="first_name_id" type="text" name="first_name" /></li>\n<li><label for="last_name">Last name:</label> <input type="text" name="last_name" id="last_name" /></li>\n');
 
-/*
-    TODO More tests after the rest of the fields are implemented.
-*/
+var SignupForm = function() {
+    this.email = new fields.EmailField();
+    this.get_spam = new fields.BooleanField();
+    
+    forms.Form.apply(this, arguments)
+};
+
+SignupForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new SignupForm({auto_id: false});
+assert(f.get_bound_field('email').toString() === '<input type="text" name="email" />');
+assert(f.get_bound_field('get_spam').toString() === '<input type="checkbox" name="get_spam" />');
+
+var f = new SignupForm({data: {'email': 'test@example.com', 'get_spam': true}, auto_id: false});
+assert(f.get_bound_field('email').toString() === '<input type="text" name="email" value="test@example.com" />');
+assert(f.get_bound_field('get_spam').toString() === '<input type="checkbox" name="get_spam" checked="checked" />');
+
+var ContactForm = function() {
+    this.subject = new fields.CharField();
+    this.message = new fields.CharField({widget: widgets.Textarea});
+    
+    forms.Form.apply(this, arguments);
+};
+
+ContactForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new ContactForm({auto_id: false});
+assert(f.get_bound_field('subject').toString() === '<input type="text" name="subject" />');
+assert(f.get_bound_field('message').toString() === '<textarea rows="10" cols="40" name="message"></textarea>');
+assert(f.get_bound_field('subject').as_textarea() === '<textarea rows="10" cols="40" name="subject"></textarea>');
+assert(f.get_bound_field('message').as_text() === '<input type="text" name="message" />');
+assert(f.get_bound_field('message').as_hidden() === '<input type="hidden" name="message" />');
+
+var ContactForm = function() {
+    this.subject = new fields.CharField();
+    this.message = new fields.CharField({widget: new widgets.Textarea({'rows': 80, 'cols': 20})});
+    
+    forms.Form.apply(this, arguments);
+};
+
+ContactForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new ContactForm({auto_id: false});
+assert(f.get_bound_field('message').toString() === '<textarea rows="80" cols="20" name="message"></textarea>');
+
+//instance level attrs don't carry over to as_textarea, as_text and as_hidden
+assert(f.get_bound_field('message').as_text() === '<input type="text" name="message" />');
+var f = new ContactForm({data: {'subject': 'Hello', 'message': 'I love you.'}, auto_id: false});
+assert(f.get_bound_field('subject').as_textarea() === '<textarea rows="10" cols="40" name="subject">Hello</textarea>');
+assert(f.get_bound_field('message').as_text() === '<input type="text" name="message" value="I love you." />');
+assert(f.get_bound_field('message').as_hidden() === '<input type="hidden" name="message" value="I love you." />');
+
+var FrameworkForm = function() {
+    this.name = new fields.CharField();
+    this.language = new fields.ChoiceField({choices: {'P': 'Python', 'J': 'Java'}});
+
+    forms.Form.apply(this, arguments);
+};
+FrameworkForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FrameworkForm({auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select name="language">\n<option value="P">Python</option>\n<option value="J">Java</option>\n</select>');
+
+var f = new FrameworkForm({data: {'name': 'Django', 'language': 'P'}, auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select name="language">\n<option value="P" selected="selected">Python</option>\n<option value="J">Java</option>\n</select>');
+
+var FrameworkForm = function() {
+    this.name = new fields.CharField();
+    this.language = new fields.ChoiceField({choices: {'': '------', 'P': 'Python', 'J': 'Java'}});
+
+    forms.Form.apply(this, arguments);
+};
+FrameworkForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FrameworkForm({auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select name="language">\n<option value="" selected="selected">------</option>\n<option value="P">Python</option>\n<option value="J">Java</option>\n</select>');
