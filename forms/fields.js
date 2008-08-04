@@ -622,6 +622,75 @@ BooleanField.prototype = {
     }
 };
 
+var ChoiceField = fields.ChoiceField = function(params) {
+    params = {
+        choices: [],
+        required: true,
+        widget: null,
+        label: null,
+        initial: null,
+        help_text: null
+    }.merge(params || {});
+    
+    Field.apply(this, [params]);
+    
+    this.choices = params.choices;
+};
+
+ChoiceField.prototype = {
+    __proto__: Field.prototype,
+    
+    widget: widgets.Select,
+    
+    default_error_messages: {
+        'invalid_choice': 'Select a valid choice. %(value)s is not one of the available choices.'
+    },
+    
+    clean: function(value) {
+        value = Field.prototype.clean.apply(this, [value]);
+        
+        if (value === null) {
+            value = '';
+        }
+        value = value.toString();
+        if (value === '') {
+            return value;
+        }
+        
+        if (!this.valid_value(value)) {
+            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['invalid_choice'], {'value': value}));
+        }
+        
+        return value
+    },
+    
+    valid_value: function(value) {
+        for (var k in this.choices) {
+            var v = this.choices[k];
+            
+            if (typeof v === 'object') {
+                // This is an optgroup
+                for (var k2 in v) {
+                    if (value === k2.toString()) {
+                        return true;
+                    }
+                }
+            } else {
+                if (value === k.toString()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+};
+
+ChoiceField.prototype.__defineGetter__("choices", function() {return this._choices;});
+ChoiceField.prototype.__defineSetter__("choices", function(value) {
+    this.widget.choices = value;
+    this._choices = this.widget.choices;
+});
+
 /*
     TODO Implement the rest of the fields
 */

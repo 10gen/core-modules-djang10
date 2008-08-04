@@ -456,6 +456,37 @@ assert(f.clean('Djang10 rocks') === true);
 // that should clean to the boolean value false:
 assert(f.clean('false') === false);
 
+// # ChoiceField #################################################################
+
+var choices = {'1': 'One', '2': 'Two'};
+
+var f = new fields.ChoiceField({choices: choices});
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.ChoiceField.prototype.clean, '');
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.ChoiceField.prototype.clean, null);
+assert(f.clean(1) === '1');
+assert(f.clean('1') === '1');
+test.assertThrows(new util.ValidationError('Select a valid choice. 3 is not one of the available choices.'), f, fields.ChoiceField.prototype.clean, '3');
+
+var f = new fields.ChoiceField({choices: choices, required: false});
+assert(f.clean('') === '');
+assert(f.clean(null) === '');
+assert(f.clean(1) === '1');
+assert(f.clean('1') === '1');
+test.assertThrows(new util.ValidationError('Select a valid choice. 3 is not one of the available choices.'), f, fields.ChoiceField.prototype.clean, '3');
+
+var f = new fields.ChoiceField({choices: {'J': 'John', 'P': 'Paul'}});
+assert(f.clean('J') === 'J');
+test.assertThrows(new util.ValidationError('Select a valid choice. John is not one of the available choices.'), f, fields.ChoiceField.prototype.clean, 'John');
+
+var f = new fields.ChoiceField({choices: {'Numbers': choices, 'Letters': {'3': 'A', '4': 'B'}, '5': 'Other'}});
+assert(f.clean(1) === '1');
+assert(f.clean('1') === '1');
+assert(f.clean(3) === '3');
+assert(f.clean('3') === '3');
+assert(f.clean(5) === '5');
+assert(f.clean('5') === '5');
+test.assertThrows(new util.ValidationError('Select a valid choice. 6 is not one of the available choices.'), f, fields.ChoiceField.prototype.clean, '6');
+
 /*
     TODO Write tests for the rest of the fields
 */
