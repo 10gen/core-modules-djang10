@@ -268,4 +268,33 @@ assert(f.toString() === '<tr><th><label for="id_name">Name:</label></th><td><inp
 assert(f.as_ul() === '<li><label for="id_name">Name:</label> <input type="text" name="name" id="id_name" /></li>\n<li><label for="id_language_0">Language:</label> <ul>\n<li><label for="id_language_0"><input id="id_language_0" type="radio" name="language" value="P" /> Python</label></li>\n<li><label for="id_language_1"><input id="id_language_1" type="radio" name="language" value="J" /> Java</label></li>\n</ul></li>\n');
 assert(f.as_p() === '<p><label for="id_name">Name:</label> <input type="text" name="name" id="id_name" /></p>\n<p><label for="id_language_0">Language:</label> <ul>\n<li><label for="id_language_0"><input id="id_language_0" type="radio" name="language" value="P" /> Python</label></li>\n<li><label for="id_language_1"><input id="id_language_1" type="radio" name="language" value="J" /> Java</label></li>\n</ul></p>\n');
 
+var SongForm = function() {
+    this.name = new fields.CharField();
+    this.composers = new fields.MultipleChoiceField();
+    
+    forms.Form.apply(this, arguments);
+};
+SongForm.prototype.__proto__ = forms.Form.prototype;
 
+var f = new SongForm({auto_id: false});
+assert(f.get_bound_field('composers').toString() === '<select multiple="multiple" name="composers">\n</select>');
+
+var SongForm = function() {
+    this.name = new fields.CharField();
+    this.composers = new fields.MultipleChoiceField({choices: {'J': 'John Lennon', 'P': 'Paul McCartney'}});
+    
+    forms.Form.apply(this, arguments);
+};
+SongForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new SongForm({auto_id: false});
+assert(f.get_bound_field('composers').toString() === '<select multiple="multiple" name="composers">\n<option value="J">John Lennon</option>\n<option value="P">Paul McCartney</option>\n</select>');
+
+var f = new SongForm({data: {'name': 'Yesterday', 'composers': ['P']}, auto_id: False});
+assert(f.get_bound_field('name').toString() === '<input type="text" name="name" value="Yesterday" />');
+assert(f.get_bound_field('composers').toString() === '<select multiple="multiple" name="composers">\n<option value="J">John Lennon</option>\n<option value="P" selected="selected">Paul McCartney</option>\n</select>');
+
+assert(f.get_bound_field('composers').as_hidden() === '<input type="hidden" name="composers" value="P" />\n');
+
+var f = new SongForm({data: {'name': 'From Me To You', 'composers': ['P', 'J']}, auto_id: False});
+assert(f.get_bound_field('composers').as_hidden() === '<input type="hidden" name="composers" value="P" />\n<input type="hidden" name="composers" value="J" />\n');
