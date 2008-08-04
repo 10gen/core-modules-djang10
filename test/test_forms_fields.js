@@ -487,6 +487,18 @@ assert(f.clean(5) === '5');
 assert(f.clean('5') === '5');
 test.assertThrows(new util.ValidationError('Select a valid choice. 6 is not one of the available choices.'), f, fields.ChoiceField.prototype.clean, '6');
 
+// # NullBooleanField ############################################################
+
+var f = new fields.NullBooleanField();
+assert(f.clean('') == null);
+assert(f.clean(true) == true);
+assert(f.clean(false) == false);
+assert(f.clean(null) == null);
+assert(f.clean('1') == null);
+assert(f.clean('2') == null);
+assert(f.clean('3') == null);
+assert(f.clean('hello') == null);
+
 /*
     TODO Write tests for the rest of the fields
 */

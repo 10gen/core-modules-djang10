@@ -691,6 +691,26 @@ ChoiceField.prototype.__defineSetter__("choices", function(value) {
     this._choices = this.widget.choices;
 });
 
+var NullBooleanField = fields.NullBooleanField = function(params) {
+    BooleanField.apply(this, [params]);
+};
+
+NullBooleanField.prototype = {
+    __proto__: BooleanField.prototype,
+    
+    widget: widgets.NullBooleanSelect,
+    
+    clean: function(value) {
+        if (value === true) {
+            return true;
+        }
+        if (value === false) {
+            return false;
+        }
+        return null;
+    }
+};
+
 /*
     TODO Implement the rest of the fields
 */
