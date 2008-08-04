@@ -451,7 +451,9 @@ var FormatterError = util.FormatterError = function(msg) {
 }
 
 var ValidationError = util.ValidationError = function(msg) {
-    if (typeof(msg) != 'object' || msg.constructor != Array)
+    if (typeof msg === 'object' && msg.constructor === ErrorList) {
+        Error.call(this, msg);
+    } else if (typeof(msg) !== 'object' || msg.constructor !== Array)
         Error.call(this, new ErrorList([msg]));
     else
         Error.call(this, new ErrorList(msg));

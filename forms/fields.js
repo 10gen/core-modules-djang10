@@ -110,9 +110,17 @@ CharField.prototype = {
         value = value.toString();
         var value_len = value.length;
         if(this.max_length != null && value_len > this.max_length)
-            throw new util.ValidationError(util.simplePythonFormat(this.error_messages["max_length"], {'max': this.max_length, 'length': value_len}));
+            throw new util.ValidationError(
+                util.simplePythonFormat(this.error_messages["max_length"], 
+                    {'max': this.max_length, 'length': value_len}
+                )
+            );
         if(this.min_length != null && value_len < this.min_length && value != '')
-            throw new util.ValidationError(util.simplePythonFormat(this.error_messages["min_length"], {'min': this.min_length, 'length': value_len}));
+            throw new util.ValidationError(
+                util.simplePythonFormat(this.error_messages["min_length"], 
+                    {'min': this.min_length, 'length': value_len}
+                )
+            );
         
         return value;
     },
@@ -290,7 +298,11 @@ DecimalField.prototype = {
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_decimal_places'], this.decimal_places));
         }
         if (this.max_digits != null && this.decimal_places != null && digits > (this.max_digits - this.decimal_places)) {
-            throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_whole_digits'], (this.max_digits - this.decimal_places)));
+            throw new util.ValidationError(
+                util.simplePythonFormat(this.error_messages['max_whole_digits'], 
+                    this.max_digits - this.decimal_places
+                )
+            );
         }
         
         return value;
@@ -830,6 +842,116 @@ var addFiles = function(files, choices, match_re, path) {
         }
     }
 };
+
+MultiValueField = fields.MultiValueField = function(params) {
+    params = {
+        fields: []
+    }.merge(params || {});
+    
+    Field.apply(this, [params]);
+    
+    for (var i = 0; i < params.fields.length; i++) {
+        params.fields[i].required = false;
+    }
+    
+    this.fields = params.fields;
+};
+
+MultiValueField.prototype = {
+    __proto__: Field.prototype,
+    
+    default_error_messages: {
+        'invalid': 'Enter a list of values.'
+    },
+    
+    clean: function(value) {
+        var clean_data = [];
+        var errors = new util.ErrorList();
+        
+        if (!value || (typeof value === 'object' && Object.isEmpty(value))) {
+            if (this.required) {
+                throw new util.ValidationError(this.error_messages['required']);
+            }
+            return this.compress([]);
+        }
+        if (typeof value !== 'object') {
+            throw new util.ValidationError(this.error_messages['invalid']);
+        }
+        
+        var empty = true;
+        for (var i in value) {
+            if (value[i] !== null && value[i] !== '') {
+                var empty = false;
+            }
+        }
+        if (empty) {
+            if (this.required) {
+                throw new util.ValidationError(this.error_messages['required']);
+            }
+            return this.compress([]);
+        }
+        
+        for (var i in this.fields) {
+            var field = this.fields[i];
+            
+            var field_value = value[i];
+            
+            if (this.required && (field_value === null || field_value === '')) {
+                throw new util.ValidationError(this.error_messages['required']);
+            }
+            try {
+                clean_data.push(field.clean(field_value));
+            } catch (e if e.constructor === util.ValidationError) {
+                errors.extend(e.message);
+            }
+        }
+        if (errors.toString()) {
+            throw new util.ValidationError(errors);
+        }
+        return this.compress(clean_data);
+    },
+    
+    compress: function(data_list) {
+        throw new util.NotImplementedError('Subclasses must implement this method.');
+    }
+}
+
+var SplitDateTimeField = fields.SplitDateTimeField = function(params) {
+    params = {
+        error_messages: {}
+    }.merge(params || {});
+    var errors = this.default_error_messages.merge(params.error_messages);
+    var fields = [
+        new DateField({error_messages: {'invalid': errors['invalid_date']}}),
+        new TimeField({error_messages: {'invalid': errors['invalid_time']}})
+    ];
+    
+    MultiValueField.apply(this, [params.merge({fields: fields})]);
+};
+
+SplitDateTimeField.prototype = {
+    __proto__: MultiValueField.prototype,
+    
+    default_error_messages: {
+        'invalid_date': 'Enter a valid date.',
+        'invalid_time': 'Enter a valid time.'
+    },
+    
+    compress: function(data_list) {
+        if (data_list && !Object.isEmpty(data_list)) {
+            if (data_list[0] === null || data_list[0] === '') {
+                throw new util.ValidationError(this.error_messages['invalid_date']);
+            }
+            if (data_list[1] === null || data_list[1] === '') {
+                throw new util.ValidationError(this.error_messages['invalid_time']);
+            }
+            return new Date(data_list[0].getFullYear(), data_list[0].getMonth(), 
+                data_list[0].getDate(), data_list[1].getHours(), 
+                data_list[1].getMinutes(), data_list[1].getSeconds());
+        }
+        return null;
+    }
+}
 
 /*
     TODO Implement the rest of the fields

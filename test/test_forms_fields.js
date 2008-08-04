@@ -585,6 +585,33 @@ test.assertThrows(new util.ValidationError('Select a valid choice. ../core-modul
 assert(f.clean(path + 'install.js') == '../core-modules/djang10/master/install.js');
 assert(f.clean(path + 'forms/fields.js') == '../core-modules/djang10/master/forms/fields.js');
 
+// # SplitDateTimeField ##########################################################
+
+var f = new fields.SplitDateTimeField();
+assert(f.clean([new Date(2006, 1, 10), new Date(0, 0, 0, 7, 30)]) == new Date(2006, 1, 10, 7, 30));
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.SplitDateTimeField.clean, null);
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.SplitDateTimeField.clean, '');
+test.assertThrows(new util.ValidationError('Enter a list of values.'), f, fields.SplitDateTimeField.clean, 'hello');
+test.assertThrows(new util.ValidationError(['Enter a valid date.', 'Enter a valid time.']), f, fields.SplitDateTimeField.clean, ['hello', 'there']);
+test.assertThrows(new util.ValidationError(['Enter a valid time.']), f, fields.SplitDateTimeField.clean, ['2006-01-10', 'there']);
+test.assertThrows(new util.ValidationError(['Enter a valid date.']), f, fields.SplitDateTimeField.clean, ['hello', '7:30']);
+
+var f = new fields.SplitDateTimeField({required: false});
+assert(f.clean([new Date(2006, 1, 10), new Date(0, 0, 0, 7, 30)]) == new Date(2006, 1, 10, 7, 30));
+assert(f.clean(['2006-01-10', '7:30']) == new Date(2006, 0, 10, 7, 30));
+
+assert(f.clean(null) === null);
+assert(f.clean('') === null);
+assert(f.clean(['']) === null);
+assert(f.clean(['', '']) === null);
+test.assertThrows(new util.ValidationError('Enter a list of values.'), f, fields.SplitDateTimeField.clean, 'hello');
+test.assertThrows(new util.ValidationError(['Enter a valid date.', 'Enter a valid time.']), f, fields.SplitDateTimeField.clean, ['hello', 'there']);
+test.assertThrows(new util.ValidationError(['Enter a valid time.']), f, fields.SplitDateTimeField.clean, ['2006-01-10', 'there']);
+test.assertThrows(new util.ValidationError(['Enter a valid date.']), f, fields.SplitDateTimeField.clean, ['hello', '7:30']);
+test.assertThrows(new util.ValidationError(['Enter a valid time.']), f, fields.SplitDateTimeField.clean, ['2006-01-10', '']);
+test.assertThrows(new util.ValidationError(['Enter a valid time.']), f, fields.SplitDateTimeField.clean, ['2006-01-10']);
+test.assertThrows(new util.ValidationError(['Enter a valid date.']), f, fields.SplitDateTimeField.clean, ['', '7:30']);
+
 /*
     TODO Write tests for the rest of the fields
 */

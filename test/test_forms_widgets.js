@@ -250,8 +250,7 @@ var get_choices = function() {
 
 assert(w.render('num', 2, {}, get_choices()).toString() == '<select name="num">\n<option value="0">0</option>\n<option value="1">1</option>\n<option value="2" selected="selected">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n</select>');
 
-/* TODO enable this test after implementing fields.ChoiceField
-var things = {{'id': 1, 'name': 'And Boom'}, {'id': 2, 'name': 'One More Thing!'}};
+var things = [{'id': 1, 'name': 'And Boom'}, {'id': 2, 'name': 'One More Thing!'}];
 
 var SomeForm = function(attrs) {
     var c = {'': '---------'};
@@ -260,16 +259,15 @@ var SomeForm = function(attrs) {
     }
     this.somechoice = new fields.ChoiceField({choices: c});
     forms.Form.call(this, attrs);
-}
+};
 
 SomeForm.prototype.__proto__ = forms.Form.prototype;
 
 var f = new SomeForm();
-assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="" selected="selected">---------</option>\n<option value="1">And Boom</option>\n<option value="2">One More Thing!</option>\n</select></td></tr>');
-assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="" selected="selected">---------</option>\n<option value="1">And Boom</option>\n<option value="2">One More Thing!</option>\n</select></td></tr>');
-var f = new SomeForm({'somechoice': 2});
-assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="">---------</option>\n<option value="1">And Boom</option>\n<option value="2" selected="selected">One More Thing!</option>\n</select></td></tr>');
-*/
+assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="" selected="selected">---------</option>\n<option value="1">And Boom</option>\n<option value="2">One More Thing!</option>\n</select></td></tr>\n');
+assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="" selected="selected">---------</option>\n<option value="1">And Boom</option>\n<option value="2">One More Thing!</option>\n</select></td></tr>\n');
+var f = new SomeForm({data: {'somechoice': 2}});
+assert(f.as_table() == '<tr><th><label for="id_somechoice">Somechoice:</label></th><td><select name="somechoice" id="id_somechoice">\n<option value="">---------</option>\n<option value="1">And Boom</option>\n<option value="2" selected="selected">One More Thing!</option>\n</select></td></tr>\n');
 
 // You can also pass 'choices' to the constructor:
 var w = new widgets.Select({}, choices3);
