@@ -202,3 +202,70 @@ FrameworkForm.prototype.__proto__ = forms.Form.prototype;
 
 var f = new FrameworkForm({auto_id: false});
 assert(f.get_bound_field('language').toString() === '<select name="language">\n<option value="" selected="selected">------</option>\n<option value="P">Python</option>\n<option value="J">Java</option>\n</select>');
+
+var FrameworkForm = function() {
+    this.name = new fields.CharField();
+    this.language = new fields.ChoiceField({choices: {'P': 'Python', 'J': 'Java'}, widget: new widgets.Select({'class': 'foo'})});
+
+    forms.Form.apply(this, arguments);
+};
+FrameworkForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FrameworkForm({auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select class="foo" name="language">\n<option value="P">Python</option>\n<option value="J">Java</option>\n</select>');
+
+var f = new FrameworkForm({data: {'name': 'Django', 'language': 'P'}, auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select class="foo" name="language">\n<option value="P" selected="selected">Python</option>\n<option value="J">Java</option>\n</select>');
+
+// When passing a custom widget instance to ChoiceField, note that setting
+// 'choices' on the widget is meaningless. The widget will use the choices
+//	defined on the Field, not the ones defined on the Widget.
+
+var FrameworkForm = function() {
+    this.name = new fields.CharField();
+    this.language = new fields.ChoiceField({choices: {'P': 'Python', 'J': 'Java'}, widget: new widgets.Select({'class': 'foo'}, {'R': 'Ruby', 'P': 'Perl'})});
+
+    forms.Form.apply(this, arguments);
+};
+FrameworkForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FrameworkForm({auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select class="foo" name="language">\n<option value="P">Python</option>\n<option value="J">Java</option>\n</select>');
+
+var f = new FrameworkForm({data: {'name': 'Django', 'language': 'P'}, auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select class="foo" name="language">\n<option value="P" selected="selected">Python</option>\n<option value="J">Java</option>\n</select>');
+
+// set choices after the fact
+var FrameworkForm = function() {
+    this.name = new fields.CharField();
+    this.language = new fields.ChoiceField();
+
+    forms.Form.apply(this, arguments);
+};
+FrameworkForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FrameworkForm({auto_id: false});
+assert(f.get_bound_field('language').toString() === '<select name="language">\n</select>');
+f.fields['language'].choices = {'P': 'Python', 'J': 'Java'};
+assert(f.get_bound_field('language').toString() === '<select name="language">\n<option value="P">Python</option>\n<option value="J">Java</option>\n</select>');
+
+var FrameworkForm = function() {
+    this.name = new fields.CharField();
+    this.language = new fields.ChoiceField({choices: {'P': 'Python', 'J': 'Java'}, widget: widgets.RadioSelect});
+
+    forms.Form.apply(this, arguments);
+};
+FrameworkForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FrameworkForm({auto_id: false});
+assert(f.get_bound_field('language').toString() === '<ul>\n<li><label><input type="radio" name="language" value="P" /> Python</label></li>\n<li><label><input type="radio" name="language" value="J" /> Java</label></li>\n</ul>');
+assert(f.toString() === '<tr><th>Name:</th><td><input type="text" name="name" /></td></tr>\n<tr><th>Language:</th><td><ul>\n<li><label><input type="radio" name="language" value="P" /> Python</label></li>\n<li><label><input type="radio" name="language" value="J" /> Java</label></li>\n</ul></td></tr>\n');
+assert(f.as_ul() === '<li>Name: <input type="text" name="name" /></li>\n<li>Language: <ul>\n<li><label><input type="radio" name="language" value="P" /> Python</label></li>\n<li><label><input type="radio" name="language" value="J" /> Java</label></li>\n</ul></li>\n');
+
+var f = new FrameworkForm({auto_id: 'id_%s'});
+assert(f.get_bound_field('language').toString() === '<ul>\n<li><label for="id_language_0"><input id="id_language_0" type="radio" name="language" value="P" /> Python</label></li>\n<li><label for="id_language_1"><input id="id_language_1" type="radio" name="language" value="J" /> Java</label></li>\n</ul>')
+assert(f.toString() === '<tr><th><label for="id_name">Name:</label></th><td><input type="text" name="name" id="id_name" /></td></tr>\n<tr><th><label for="id_language_0">Language:</label></th><td><ul>\n<li><label for="id_language_0"><input id="id_language_0" type="radio" name="language" value="P" /> Python</label></li>\n<li><label for="id_language_1"><input id="id_language_1" type="radio" name="language" value="J" /> Java</label></li>\n</ul></td></tr>\n');
+assert(f.as_ul() === '<li><label for="id_name">Name:</label> <input type="text" name="name" id="id_name" /></li>\n<li><label for="id_language_0">Language:</label> <ul>\n<li><label for="id_language_0"><input id="id_language_0" type="radio" name="language" value="P" /> Python</label></li>\n<li><label for="id_language_1"><input id="id_language_1" type="radio" name="language" value="J" /> Java</label></li>\n</ul></li>\n');
+assert(f.as_p() === '<p><label for="id_name">Name:</label> <input type="text" name="name" id="id_name" /></p>\n<p><label for="id_language_0">Language:</label> <ul>\n<li><label for="id_language_0"><input id="id_language_0" type="radio" name="language" value="P" /> Python</label></li>\n<li><label for="id_language_1"><input id="id_language_1" type="radio" name="language" value="J" /> Java</label></li>\n</ul></p>\n');
+
+

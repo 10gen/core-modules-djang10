@@ -467,11 +467,11 @@ assert(w.render('escape', null, {}, {'bad': 'you & me', 'good': djang10.mark_saf
 
 // # Attributes provided at instantiation are passed to the constituent inputs
 var w = new widgets.RadioSelect({'id':'foo'});
-assert(w.render('beatle', 'J', {}, choices).toString() == '<ul>\n<li><label for="foo_J"><input id="foo_J" type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label for="foo_P"><input id="foo_P" type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label for="foo_G"><input id="foo_G" type="radio" name="beatle" value="G" /> George</label></li>\n<li><label for="foo_R"><input id="foo_R" type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
+assert(w.render('beatle', 'J', {}, choices).toString() == '<ul>\n<li><label for="foo_0"><input id="foo_0" type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label for="foo_1"><input id="foo_1" type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label for="foo_2"><input id="foo_2" type="radio" name="beatle" value="G" /> George</label></li>\n<li><label for="foo_3"><input id="foo_3" type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
 
 // # Attributes provided at render-time are passed to the constituent inputs
 var w = new widgets.RadioSelect();
-assert(w.render('beatle', 'J', {'id': 'bar'}, choices).toString() == '<ul>\n<li><label for="bar_J"><input id="bar_J" type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label for="bar_P"><input id="bar_P" type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label for="bar_G"><input id="bar_G" type="radio" name="beatle" value="G" /> George</label></li>\n<li><label for="bar_R"><input id="bar_R" type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
+assert(w.render('beatle', 'J', {'id': 'bar'}, choices).toString() == '<ul>\n<li><label for="bar_0"><input id="bar_0" type="radio" name="beatle" value="J" checked="checked" /> John</label></li>\n<li><label for="bar_1"><input id="bar_1" type="radio" name="beatle" value="P" /> Paul</label></li>\n<li><label for="bar_2"><input id="bar_2" type="radio" name="beatle" value="G" /> George</label></li>\n<li><label for="bar_3"><input id="bar_3" type="radio" name="beatle" value="R" /> Ringo</label></li>\n</ul>');
 
 // # CheckboxSelectMultiple Widget ###############################################
 

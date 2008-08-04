@@ -19,6 +19,9 @@ core.modules.djang10.forms.util();
 
 widgets = {};
 
+/*
+    TODO it might make more sense for widgets to take an object like {attrs: attrs, choices: choices}
+*/
 var Widget = widgets.Widget = function(attrs) {
     this.attrs = attrs || {};
 };
@@ -412,12 +415,14 @@ RadioFieldRenderer.prototype = {
 
 RadioFieldRenderer.prototype.__defineGetter__("radio_inputs", function() {
     var ris = [];
+    var k = 0;
     for (var i in this.choices) {
         var attrs_copy = {};
         for (var j in this.attrs) {
             attrs_copy[j] = this.attrs[j];
         }
-        ris.push(new RadioInput(this.name, this.value, attrs_copy, [i, this.choices[i]], i));
+        ris.push(new RadioInput(this.name, this.value, attrs_copy, [i, this.choices[i]], k));
+        k++;
     }
     return ris;
 });
