@@ -569,6 +569,22 @@ test.assertThrows(new util.ValidationError('Enter a valid e-mail address.'), f, 
 assert(f.clean('') === '');
 assert(f.clean(null) === '');
 
+// # FilePathField ###############################################################
+var path = '../core-modules/djang10/master/'
+var f = new fields.FilePathField({path: path})
+test.assertThrows(new util.ValidationError('Select a valid choice. install.js is not one of the available choices.'), f, fields.FilePathField.clean, 'install.js');
+assert(f.clean(path + 'install.js') == '../core-modules/djang10/master/install.js');
+
+var f = new fields.FilePathField({path: path, match: '^.*?\.js$'});
+test.assertThrows(new util.ValidationError('Select a valid choice. ../core-modules/djang10/master/readme.txt is not one of the available choices.'), f, fields.FilePathField.clean, path + 'readme.txt');
+assert(f.clean(path + 'install.js') == '../core-modules/djang10/master/install.js');
+test.assertThrows(new util.ValidationError('Select a valid choice. ../core-modules/djang10/master/forms/fields.js is not one of the available choices.'), f, fields.FilePathField.clean, path + 'forms/fields.js');
+
+var f = new fields.FilePathField({path: path, recursive: true, match: '^.*?\.js$'});
+test.assertThrows(new util.ValidationError('Select a valid choice. ../core-modules/djang10/master/readme.txt is not one of the available choices.'), f, fields.FilePathField.clean, path + 'readme.txt');
+assert(f.clean(path + 'install.js') == '../core-modules/djang10/master/install.js');
+assert(f.clean(path + 'forms/fields.js') == '../core-modules/djang10/master/forms/fields.js');
+
 /*
     TODO Write tests for the rest of the fields
 */

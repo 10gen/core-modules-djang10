@@ -675,10 +675,10 @@ ChoiceField.prototype = {
                         return true;
                     }
                 }
-            } else {
-                if (value === k.toString()) {
-                    return true;
-                }
+            } 
+            
+            if (value === k.toString()) {
+                return true;
             }
         }
         return false;
@@ -773,6 +773,63 @@ ComboField.prototype = {
         return value;
     }
 }
+
+var FilePathField = fields.FilePathField = function(params) {
+    params = {
+        match: null,
+        recursive: false,
+        required: true,
+        widget: widgets.Select,
+        label: null,
+        initial: null,
+        help_text: null
+    }.merge(params || {});
+    
+    this.path = params.path;
+    this.match = params.match;
+    this.recursive = params.recursive;
+    
+    ChoiceField.apply(this, [params]);
+    
+    this.choices = {};
+    
+    if (this.match !== null) {
+        this.match_re = RegExp(this.match);
+    }
+    
+    var thisFile = openFile(params.path);
+    if (thisFile.exists() && thisFile.isDirectory()) {
+        var contents = [];
+        contents = thisFile.listFiles();
+        
+        if (this.recursive) {
+            addFiles(contents, this.choices, this.match_re, params.path);
+        } else {
+            for (var i = 0; i < contents.length; i++) {
+                if (!contents[i].isDirectory()) {
+                    if (!this.match_re || this.match_re.test(contents[i].getName())) {
+                        this.choices[params.path + contents[i].getName()] = contents[i];
+                    }
+                }
+            }
+        }
+        this.widget.choices = this.choices;
+    } else {
+        throw new util.ValidationError('path ' + params.path + 'does not exist or is not a directory.');
+    }
+};
+
+FilePathField.prototype.__proto__ = ChoiceField.prototype;
+
+var addFiles = function(files, choices, match_re, path) {
+    for (var i = 0; i < files.length; i++) {
+        if (files[i].isDirectory()) {
+            addFiles(files[i].listFiles(), choices, match_re, path + files[i].getName() + '/');
+        } else if (!match_re || match_re.test(files[i].getName())) {
+            choices[path + files[i].getName()] = files[i];
+        }
+    }
+};
 
 /*
     TODO Implement the rest of the fields
