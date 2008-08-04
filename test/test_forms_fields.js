@@ -551,6 +551,24 @@ assert(f.clean(['1', '5'])[1] === '5');
 test.assertThrows(new util.ValidationError('Select a valid choice. 6 is not one of the available choices.'), f, fields.MultipleChoiceField.clean, ['6']);
 test.assertThrows(new util.ValidationError('Select a valid choice. 6 is not one of the available choices.'), f, fields.MultipleChoiceField.clean, ['1', '6']);
 
+// # ComboField ##################################################################
+
+// ComboField takes a list of fields that should be used to validate a value,
+// in that order.
+var f = new fields.ComboField({fields: [new fields.CharField({max_length: 20}), new fields.EmailField()]});
+assert(f.clean('test@example.com') === 'test@example.com');
+test.assertThrows(new util.ValidationError('Ensure this value has at most 20 characters (it has 28).'), f, fields.ComboField.clean, 'longemailaddress@example.com');
+test.assertThrows(new util.ValidationError('Enter a valid e-mail address.'), f, fields.ComboField.clean, 'not an email');
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.ComboField.clean, '');
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.ComboField.clean, null);
+
+var f = new fields.ComboField({fields: [new fields.CharField({max_length: 20}), new fields.EmailField()], required: false});
+assert(f.clean('test@example.com') === 'test@example.com');
+test.assertThrows(new util.ValidationError('Ensure this value has at most 20 characters (it has 28).'), f, fields.ComboField.clean, 'longemailaddress@example.com');
+test.assertThrows(new util.ValidationError('Enter a valid e-mail address.'), f, fields.ComboField.clean, 'not an email');
+assert(f.clean('') === '');
+assert(f.clean(null) === '');
+
 /*
     TODO Write tests for the rest of the fields
 */

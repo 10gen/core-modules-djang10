@@ -746,6 +746,34 @@ MultipleChoiceField.prototype = {
     }
 };
 
+var ComboField = fields.ComboField = function(params) {
+    params = {
+        fields: []
+    }.merge(params || {});
+    
+    Field.apply(this, [params]);
+    
+    for (var i = 0; i < params.fields.length; i++) {
+        params.fields[i].required = false;
+    }
+    
+    this.fields = params.fields;
+};
+
+ComboField.prototype = {
+    __proto__: Field.prototype,
+    
+    clean: function(value) {
+        Field.clean.apply(this, [value]);
+        
+        for (var i = 0; i < this.fields.length; i++) {
+            value = this.fields[i].clean(value);
+        }
+        
+        return value;
+    }
+}
+
 /*
     TODO Implement the rest of the fields
 */
