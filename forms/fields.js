@@ -711,6 +711,41 @@ NullBooleanField.prototype = {
     }
 };
 
+var MultipleChoiceField = fields.MultipleChoiceField = function(params) {
+    ChoiceField.apply(this, [params]);
+};
+
+MultipleChoiceField.prototype = {
+    __proto__: ChoiceField.prototype,
+    
+    hidden_widget: widgets.MultipleHiddenInput,
+    widget: widgets.SelectMultiple,
+    default_error_messages: {
+        'invalid_choice': 'Select a valid choice. %(value)s is not one of the available choices.',
+        'invalid_list': 'Enter a list of values.'
+    },
+    
+    clean: function(value) {
+        if (this.required && (!value || (typeof value === 'object' && Object.isEmpty(value)))) {
+            throw new util.ValidationError(this.error_messages['required']);
+        } else if (!this.required && (!value || (typeof value === 'object' && Object.isEmpty(value)))) {
+            return [];
+        }
+        if (typeof value !== 'object') {
+            throw new util.ValidationError(this.error_messages['invalid_list']);
+        }
+        var ret_val = [];
+        for (var k in value) {
+            value[k] = value[k].toString();
+            if (!this.valid_value(value[k])) {
+                throw new util.ValidationError(util.simplePythonFormat(this.error_messages['invalid_choice'], {value: value[k]}));
+            }
+            ret_val.push(value[k]);
+        }
+        return ret_val;
+    }
+};
+
 /*
     TODO Implement the rest of the fields
 */

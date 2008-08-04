@@ -499,6 +499,58 @@ assert(f.clean('2') == null);
 assert(f.clean('3') == null);
 assert(f.clean('hello') == null);
 
+// # MultipleChoiceField #########################################################
+
+var f = new fields.MultipleChoiceField({choices: choices});
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.MultipleChoiceField.clean, '');
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.MultipleChoiceField.clean, null);
+assert(f.clean([1])[0] === ['1'][0]);
+assert(f.clean(['1'])[0] === ['1'][0]);
+assert(f.clean(['1', '2'])[0] === ['1', '2'][0]);
+assert(f.clean(['1', '2'])[1] === ['1', '2'][1]);
+assert(f.clean([1, '2'])[0] === ['1', '2'][0]);
+assert(f.clean([1, '2'])[1] === ['1', '2'][1]);
+assert(f.clean([1, '2']).length === ['1', '2'].length);
+assert(f.clean({a: 1, b: '2'})[0] === ['1', '2'][0]);
+assert(f.clean({a: 1, b: '2'})[1] === ['1', '2'][1]);
+assert(f.clean({a: 1, b: '2'}).length === ['1', '2'].length);
+test.assertThrows(new util.ValidationError('Enter a list of values.'), f, fields.MultipleChoiceField.clean, 'hello');
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.MultipleChoiceField.clean, []);
+test.assertThrows(new util.ValidationError('This field is required.'), f, fields.MultipleChoiceField.clean, {});
+test.assertThrows(new util.ValidationError('Select a valid choice. 3 is not one of the available choices.'), f, fields.MultipleChoiceField.clean, ['3']);
+
+var f = new fields.MultipleChoiceField({choices: choices, required: false});
+assert(f.clean('').length === 0);
+assert(f.clean(null).length === 0);
+assert(f.clean([1])[0] === ['1'][0]);
+assert(f.clean(['1'])[0] === ['1'][0]);
+assert(f.clean(['1', '2'])[0] === ['1', '2'][0]);
+assert(f.clean(['1', '2'])[1] === ['1', '2'][1]);
+assert(f.clean([1, '2'])[0] === ['1', '2'][0]);
+assert(f.clean([1, '2'])[1] === ['1', '2'][1]);
+assert(f.clean([1, '2']).length === ['1', '2'].length);
+assert(f.clean({a: 1, b: '2'})[0] === ['1', '2'][0]);
+assert(f.clean({a: 1, b: '2'})[1] === ['1', '2'][1]);
+assert(f.clean({a: 1, b: '2'}).length === ['1', '2'].length);
+test.assertThrows(new util.ValidationError('Enter a list of values.'), f, fields.MultipleChoiceField.clean, 'hello');
+assert(f.clean([]).length === 0);
+assert(f.clean({}).length === 0);
+test.assertThrows(new util.ValidationError('Select a valid choice. 3 is not one of the available choices.'), f, fields.MultipleChoiceField.clean, ['3']);
+
+var f = new fields.MultipleChoiceField({choices: {'Numbers': choices, 'Letters': {'3': 'A', '4': 'B'}, '5': 'Other'}});
+assert(f.clean([1])[0] === '1');
+assert(f.clean(['1'])[0] === '1');
+assert(f.clean([1, 5])[0] === '1');
+assert(f.clean([1, 5])[1] === '5');
+assert(f.clean([1, '5'])[0] === '1');
+assert(f.clean([1, '5'])[1] === '5');
+assert(f.clean(['1', 5])[0] === '1');
+assert(f.clean(['1', 5])[1] === '5');
+assert(f.clean(['1', '5'])[0] === '1');
+assert(f.clean(['1', '5'])[1] === '5');
+test.assertThrows(new util.ValidationError('Select a valid choice. 6 is not one of the available choices.'), f, fields.MultipleChoiceField.clean, ['6']);
+test.assertThrows(new util.ValidationError('Select a valid choice. 6 is not one of the available choices.'), f, fields.MultipleChoiceField.clean, ['1', '6']);
+
 /*
     TODO Write tests for the rest of the fields
 */
