@@ -897,3 +897,85 @@ UserRegistration.prototype.__proto__ = forms.Form.prototype;
 
 var p = new UserRegistration({auto_id: false});
 assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" /> e.g., user@example.com</li>\n<li>Password: <input type="password" name="password" /><input type="hidden" name="next" value="/" /></li>\n');
+
+// Subclassing forms ###########################################################
+// 
+// You can subclass a Form to add fields. The resulting form subclass will have
+// all of the fields of the parent Form, plus whichever fields you define in the
+// subclass.
+
+// This stuff is kind of weird right now due to using javascript style inheritance.
+var Person = function() {
+    this.first_name = new fields.CharField();
+    this.last_name = new fields.CharField();
+    this.birthday = new fields.DateField();
+    
+    forms.Form.apply(this, arguments);
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var Musician = function() {
+    Person.apply(this, arguments);
+    this.instrument = new fields.CharField();
+    forms.Form.apply(this, arguments);
+};
+Musician.prototype.__proto__ = Person.prototype;
+
+var p = new Person({auto_id: false});
+assert(p.as_ul() === '<li>First name: <input type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n<li>Birthday: <input type="text" name="birthday" /></li>\n');
+var m = new Musician({auto_id: false});
+assert(m.as_ul() === '<li>First name: <input type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n<li>Birthday: <input type="text" name="birthday" /></li>\n<li>Instrument: <input type="text" name="instrument" /></li>\n');
+
+// What about subclassing multiple forms? This might work, but we're getting into the hairier side of javascript now...
+var Instrument = function() {
+    this.instrument = new fields.CharField();
+    forms.Form.apply(this, arguments);
+};
+Instrument.prototype.__proto__ = forms.Form.prototype;
+
+var Beatle = function() {
+    Person.apply(this, arguments);
+    Instrument.apply(this, arguments);
+    this.haircut_type = new fields.CharField();
+    forms.Form.apply(this, arguments);
+};
+Beatle.prototype.__proto__ = Person.prototype;
+Beatle.prototype.extend(Instrument.prototype);
+
+var b = new Beatle({auto_id: false});
+assert(b.as_ul() === '<li>First name: <input type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n<li>Birthday: <input type="text" name="birthday" /></li>\n<li>Instrument: <input type="text" name="instrument" /></li>\n<li>Haircut type: <input type="text" name="haircut_type" /></li>\n');
+
+//# Forms with prefixes #########################################################
+// 
+// Sometimes it's necessary to have multiple forms display on the same HTML page,
+// or multiple copies of the same form. We can accomplish this with form prefixes.
+// Pass the keyword argument 'prefix' to the Form constructor to use this feature.
+// This value will be prepended to each HTML form field name. One way to think
+// about this is "namespaces for HTML forms". Notice that in the data argument,
+// each field's key has the p
+var Person = function() {
+    this.first_name = new fields.CharField();
+    this.last_name = new fields.CharField();
+    this.birthday = new fields.DateField();
+    
+    forms.Form.apply(this, arguments);
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var data = {
+    'person1-first_name': 'John',
+    'person1-last_name': 'Lennon',
+    'person1-birthday': '1940-10-9'
+};
+
+var p = new Person({data: data, prefix: 'person1'});
+assert(p.as_ul() === '<li><label for="id_person1-first_name">First name:</label> <input type="text" name="person1-first_name" id="id_person1-first_name" value="John" /></li>\n<li><label for="id_person1-last_name">Last name:</label> <input type="text" name="person1-last_name" id="id_person1-last_name" value="Lennon" /></li>\n<li><label for="id_person1-birthday">Birthday:</label> <input type="text" name="person1-birthday" id="id_person1-birthday" value="1940-10-9" /></li>\n');
+assert(p.get_bound_field('first_name').toString() === '<input type="text" name="person1-first_name" id="id_person1-first_name" value="John" />');
+assert(p.get_bound_field('last_name').toString() === '<input type="text" name="person1-last_name" id="id_person1-last_name" value="Lennon" />');
+assert(p.get_bound_field('birthday').toString() === '<input type="text" name="person1-birthday" id="id_person1-birthday" value="1940-10-9" />');
+assert(Object.isEmpty(p.errors.dict));
+assert(p.is_valid());
+assert(p.cleaned_data['first_name'] === 'John');
+assert(p.cleaned_data['last_name'] === 'Lennon');
+assert(p.cleaned_data['birthday'] == new Date(1940, 9, 9));
+

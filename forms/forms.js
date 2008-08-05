@@ -66,7 +66,7 @@ Form.prototype = {
     },
     
     add_prefix: function(field_name) {
-        return (this.prefix) ? self.prefix + "-" + field_name : field_name;
+        return (this.prefix) ? this.prefix + "-" + field_name : field_name;
     },
     
     _html_output: function(normal_row, error_row, row_ender, help_text_html, errors_on_separate_row) {
