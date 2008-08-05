@@ -408,7 +408,7 @@ ErrorList.prototype = {
             return '';
         var inner = '';
         for (var i = 0; i < this.list.length; i++)
-            inner += '<li>' + this.list[i] + '</li>';
+            inner += '<li>' + content.HTML.escape(this.list[i]) + '</li>';
         return djang10.mark_safe('<ul class="errorlist">' + inner + '</ul>');
     },
     

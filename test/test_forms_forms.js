@@ -335,3 +335,37 @@ assert(f.as_ul() === '<li>Name: <input type="text" name="name" value="Yesterday"
 
 var f = new SongFormHidden({data: {name: 'Yesterday'}, auto_id: false});
 assert(f.errors.dict['composers'].list[0] == 'This field is required.');
+
+var f = new SongFormHidden({data: {name: 'Yesterday', composers: ['J']}, auto_id: false});
+assert(Object.isEmpty(f.errors.dict));
+assert(f.cleaned_data['composers'][0] === 'J');
+assert(f.cleaned_data['composers'].length === 1);
+assert(f.cleaned_data['name'] === 'Yesterday');
+
+var f = new SongFormHidden({data: {name: 'Yesterday', composers: ['J', 'P']}, auto_id: false});
+assert(Object.isEmpty(f.errors.dict));
+assert(f.cleaned_data['composers'][0] === 'J');
+assert(f.cleaned_data['composers'][1] === 'P');
+assert(f.cleaned_data['composers'].length === 2);
+assert(f.cleaned_data['name'] === 'Yesterday');
+
+var EscapingForm = function() {
+    this.special_name = new fields.CharField();
+    
+    var that = this;
+    this.clean_special_name = function() {
+        throw new util.ValidationError("Something's wrong with '" + that.cleaned_data["special_name"] + "'")
+    }
+    
+    forms.Form.apply(this, arguments);
+};
+EscapingForm.prototype = {
+    __proto__: forms.Form.prototype,
+};
+
+var f = new EscapingForm({data: {'special_name': "Nothing to escape"}, auto_id: false});
+assert(f.toString() === '<tr><th>Special name:</th><td><ul class="errorlist"><li>Something&#39;s wrong with &#39;Nothing to escape&#39;</li></ul><input type="text" name="special_name" value="Nothing to escape" /></td></tr>\n');
+
+var f = new EscapingForm({data: {'special_name': "Should escape < & > and <script>alert('xss')</script>"}, auto_id: false});
+assert(f.toString() === '<tr><th>Special name:</th><td><ul class="errorlist"><li>Something&#39;s wrong with &#39;Should escape &lt; &amp; &gt; and &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;&#39;</li></ul><input type="text" name="special_name" value="Should escape &lt; &amp; &gt; and &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;" /></td></tr>\n');
+

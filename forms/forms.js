@@ -184,10 +184,11 @@ Form.prototype = {
                 else {
                     value = field.clean(value);
                 }
+                this.cleaned_data[name] = value;
                 if (this['clean_' + name]) {
                     value = this['clean_' + name] ();
+                    this.cleaned_data[name] = value;
                 }
-                this.cleaned_data[name] = value;
             } catch(e if Object.instanceOf(e, util.ValidationError)) {
                 this._errors.dict[name] = e.message;
                 if (this.cleaned_data && typeof(this.cleaned_data[name]) != 'undefined')
