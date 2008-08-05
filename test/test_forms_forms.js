@@ -979,3 +979,77 @@ assert(p.cleaned_data['first_name'] === 'John');
 assert(p.cleaned_data['last_name'] === 'Lennon');
 assert(p.cleaned_data['birthday'] == new Date(1940, 9, 9));
 
+var data = {
+    'person1-first_name': '',
+    'person1-last_name': '',
+    'person1-birthday': ''
+};
+
+var p = new Person({data: data, prefix: 'person1'});
+assert(p.errors.dict['first_name'].list[0] === 'This field is required.');
+assert(p.errors.dict['last_name'].list[0] === 'This field is required.');
+assert(p.errors.dict['birthday'].list[0] === 'This field is required.');
+assert(p.get_bound_field('first_name').errors.list[0] === 'This field is required.');
+test.assertThrows(new util.Error("Field person1-first_name not found in Form."), p, forms.Form.get_bound_field, 'person1-first_name');
+
+var data = {
+    'first_name': 'John',
+    'last_name': 'Lennon',
+    'birthday': '1940-10-9'
+};
+
+var p = new Person({data: data, prefix: 'person1'});
+assert(p.errors.dict['first_name'].list[0] === 'This field is required.');
+assert(p.errors.dict['last_name'].list[0] === 'This field is required.');
+assert(p.errors.dict['birthday'].list[0] === 'This field is required.');
+
+var data = {
+    'person1-first_name': 'John',
+    'person1-last_name': 'Lennon',
+    'person1-birthday': '1940-10-9',
+    'person2-first_name': 'Jim',
+    'person2-last_name': 'Morrison',
+    'person2-birthday': '1943-12-8'
+};
+
+var p1 = new Person({data: data, prefix: 'person1'});
+assert(p1.is_valid());
+assert(p1.cleaned_data['first_name'] === 'John');
+assert(p1.cleaned_data['last_name'] === 'Lennon');
+assert(p1.cleaned_data['birthday'] == new Date(1940, 9, 9));
+
+var p2 = new Person({data: data, prefix: 'person2'});
+assert(p2.is_valid());
+assert(p2.cleaned_data['first_name'] === 'Jim');
+assert(p2.cleaned_data['last_name'] === 'Morrison');
+assert(p2.cleaned_data['birthday'] == new Date(1943, 11, 8));
+
+// try a custom add_prefix method
+var Person = function() {
+    this.first_name = new fields.CharField();
+    this.last_name = new fields.CharField();
+    this.birthday = new fields.DateField();
+    
+    var that = this;
+    this.add_prefix = function(field_name) {
+        return that.prefix ? (that.prefix + '-prefix-' + field_name) : field_name;
+    };
+    
+    forms.Form.apply(this, arguments);
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var p = new Person({prefix: 'foo'});
+assert(p.as_ul() === '<li><label for="id_foo-prefix-first_name">First name:</label> <input type="text" name="foo-prefix-first_name" id="id_foo-prefix-first_name" /></li>\n<li><label for="id_foo-prefix-last_name">Last name:</label> <input type="text" name="foo-prefix-last_name" id="id_foo-prefix-last_name" /></li>\n<li><label for="id_foo-prefix-birthday">Birthday:</label> <input type="text" name="foo-prefix-birthday" id="id_foo-prefix-birthday" /></li>\n');
+
+var data = {
+    'foo-prefix-first_name': 'John',
+    'foo-prefix-last_name': 'Lennon',
+    'foo-prefix-birthday': '1940-10-9'
+};
+
+var p = new Person({data: data, prefix: 'foo'});
+assert(p.is_valid());
+assert(p.cleaned_data['first_name'] === 'John');
+assert(p.cleaned_data['last_name'] === 'Lennon');
+assert(p.cleaned_data['birthday'] == new Date(1940, 9, 9));
