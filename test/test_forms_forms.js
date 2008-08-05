@@ -298,3 +298,40 @@ assert(f.get_bound_field('composers').as_hidden() === '<input type="hidden" name
 
 var f = new SongForm({data: {'name': 'From Me To You', 'composers': ['P', 'J']}, auto_id: False});
 assert(f.get_bound_field('composers').as_hidden() === '<input type="hidden" name="composers" value="P" />\n<input type="hidden" name="composers" value="J" />\n');
+
+var SongForm = function() {
+    this.name = new fields.CharField();
+    this.composers = new fields.MultipleChoiceField({choices: {'J': 'John Lennon', 'P': 'Paul McCartney'}, widget: widgets.CheckboxSelectMultiple});
+    
+    forms.Form.apply(this, arguments);
+};
+SongForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new SongForm({auto_id: false});
+assert(f.get_bound_field('composers').toString() === '<ul>\n<li><label><input name="composers" type="checkbox" value="J" /> John Lennon</label></li>\n<li><label><input name="composers" type="checkbox" value="P" /> Paul McCartney</label></li>\n</ul>');
+
+var f = new SongForm({data: {'composers': ['J']}, auto_id: false});
+assert(f.get_bound_field('composers').toString() === '<ul>\n<li><label><input name="composers" type="checkbox" checked="checked" value="J" /> John Lennon</label></li>\n<li><label><input name="composers" type="checkbox" value="P" /> Paul McCartney</label></li>\n</ul>');
+
+var f = new SongForm({data: {'composers': ['J', 'P']}, auto_id: false});
+assert(f.get_bound_field('composers').toString() === '<ul>\n<li><label><input name="composers" type="checkbox" checked="checked" value="J" /> John Lennon</label></li>\n<li><label><input name="composers" type="checkbox" checked="checked" value="P" /> Paul McCartney</label></li>\n</ul>');
+
+var f = new SongForm({auto_id: '%s_id'});
+assert(f.get_bound_field('composers').toString() === '<ul>\n<li><label for="composers_id_0"><input name="composers" id="composers_id_0" type="checkbox" value="J" /> John Lennon</label></li>\n<li><label for="composers_id_1"><input name="composers" id="composers_id_1" type="checkbox" value="P" /> Paul McCartney</label></li>\n</ul>');
+
+var f = new SongForm({data: {'name': 'Yesterday', 'composers': ['J', 'P']}});
+assert(Object.isEmpty(f.errors.dict));
+
+var SongFormHidden = function() {
+    this.name = new fields.CharField();
+    this.composers = new fields.MultipleChoiceField({choices: {'J': 'John Lennon', 'P': 'Paul McCartney'}, widget: widgets.MultipleHiddenInput});
+    
+    forms.Form.apply(this, arguments);
+};
+SongFormHidden.prototype.__proto__ = forms.Form.prototype;
+
+var f = new SongFormHidden({data: {name: 'Yesterday', composers: ['J', 'P']}, auto_id: false});
+assert(f.as_ul() === '<li>Name: <input type="text" name="name" value="Yesterday" /><input type="hidden" name="composers" value="J" />\n<input type="hidden" name="composers" value="P" />\n</li>\n')
+
+var f = new SongFormHidden({data: {name: 'Yesterday'}, auto_id: false});
+assert(f.errors.dict['composers'].list[0] == 'This field is required.');
