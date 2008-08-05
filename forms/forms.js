@@ -148,7 +148,7 @@ Form.prototype = {
     
     as_ul: function() {
         return this._html_output('<li>%(errors)s%(label)s %(field)s%(help_text)s</li>', 
-                '<li>%s</li>', '</li>', '%s', false);
+                '<li>%s</li>', '</li>', ' %s', false);
     },
     
     as_p: function() {

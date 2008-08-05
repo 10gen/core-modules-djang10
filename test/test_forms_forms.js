@@ -719,3 +719,181 @@ assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="user
 
 var p = new UserRegistration({auto_id: 'id_%s'});
 assert(p.as_ul() === '<li><label for="id_username">Username:</label> <input maxlength="10" type="text" name="username" id="id_username" /></li>\n<li><label for="id_password">Password:</label> <input type="password" name="password" id="id_password" /></li>\n');
+
+// Label suffix
+
+// You can specify the 'label_suffix' argument to a Form class to modify the
+// punctuation symbol used at the end of a label.  By default, the colon (:) is
+// used, and is only appended to the label if the label doesn't already end with a
+// punctuation symbol: ., !, ? or :.  If you specify a different suffix, it will
+// be appended regardless of the last character of the label.
+var FavoriteForm = function() {
+    this.color = new fields.CharField({label: 'Favorite color?'});
+    this.animal = new fields.CharField({label: 'Favorite animal'});
+    
+    forms.Form.apply(this, arguments);
+};
+FavoriteForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FavoriteForm({auto_id: false});
+assert(f.as_ul() === '<li>Favorite color? <input type="text" name="color" /></li>\n<li>Favorite animal: <input type="text" name="animal" /></li>\n');
+var f = new FavoriteForm({auto_id: false, label_suffix: '?'});
+assert(f.as_ul() === '<li>Favorite color? <input type="text" name="color" /></li>\n<li>Favorite animal? <input type="text" name="animal" /></li>\n');
+var f = new FavoriteForm({auto_id: false, label_suffix: ''});
+assert(f.as_ul() === '<li>Favorite color? <input type="text" name="color" /></li>\n<li>Favorite animal <input type="text" name="animal" /></li>\n');
+
+// Initial data ################################################################
+// 
+// You can specify initial data for a field by using the 'initial' argument to a
+// Field class. This initial data is displayed when a Form is rendered with *no*
+// data. It is not displayed when a Form is rendered with any data (including an
+// empty dictionary). Also, the initial value is *not* used if data for a
+// particular required field isn't provided.
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, initial: 'django'});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="django" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({data: {}, auto_id: false});
+assert(p.as_ul() === '<li><ul class="errorlist"><li>This field is required.</li></ul>Username: <input maxlength="10" type="text" name="username" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({data: {'username': ''}, auto_id: false});
+assert(p.as_ul() === '<li><ul class="errorlist"><li>This field is required.</li></ul>Username: <input maxlength="10" type="text" name="username" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({data: {'username': 'foo'}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="foo" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({data: {'password': 'secret'}});
+assert(p.errors.dict['username'].list[0] === 'This field is required.');
+assert(!p.is_valid());
+
+// # Dynamic initial data ########################################################
+// 
+// The previous technique dealt with "hard-coded" initial data, but it's also
+// possible to specify initial data after you've already created the Form class
+// (i.e., at runtime). Use the 'initial' parameter to the Form constructor. This
+// should be a dictionary containing initial values for one or more fields in the
+// form, keyed by field name.
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var p = new UserRegistration({initial: {username: 'django'}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="django" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: 'stephanie'}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="stephanie" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: 'django'}, data: {}, auto_id: false});
+assert(p.as_ul() === '<li><ul class="errorlist"><li>This field is required.</li></ul>Username: <input maxlength="10" type="text" name="username" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: 'django'}, data: {'username': ''}, auto_id: false});
+assert(p.as_ul() === '<li><ul class="errorlist"><li>This field is required.</li></ul>Username: <input maxlength="10" type="text" name="username" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: 'django'}, data: {'username': 'foo'}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="foo" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: 'django'}, data: {'password': 'secret'}});
+assert(p.errors.dict['username'].list[0] === 'This field is required.');
+assert(!p.is_valid());
+
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, initial: 'django'});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var p = new UserRegistration({initial: {username: 'stephanie'}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="stephanie" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+// Callable initial data ########################################################
+// 
+// The previous technique dealt with raw values as initial data, but it's also
+// possible to specify callable data.
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+var initial_django = function() {
+    return 'django';
+};
+var initial_stephanie = function() {
+    return 'stephanie';
+};
+
+var p = new UserRegistration({initial: {username: initial_django}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="django" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: initial_stephanie}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="stephanie" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: initial_django}, data: {}, auto_id: false});
+assert(p.as_ul() === '<li><ul class="errorlist"><li>This field is required.</li></ul>Username: <input maxlength="10" type="text" name="username" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: initial_django}, data: {'username': ''}, auto_id: false});
+assert(p.as_ul() === '<li><ul class="errorlist"><li>This field is required.</li></ul>Username: <input maxlength="10" type="text" name="username" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: initial_django}, data: {'username': 'foo'}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="foo" /></li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({initial: {username: initial_django}, data: {'password': 'secret'}});
+assert(p.errors.dict['username'].list[0] === 'This field is required.');
+assert(!p.is_valid());
+
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, initial: initial_django});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var p = new UserRegistration({initial: {username: initial_stephanie}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="stephanie" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+// 	# Help text ###################################################################
+// 
+// You can specify descriptive text for a field by using the 'help_text' argument
+// to a Field class. This help text is displayed when a Form is rendered.
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, help_text: 'e.g., user@example.com'});
+    this.password = new fields.CharField({widget: widgets.PasswordInput, help_text: 'Choose wisely.'});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" /> e.g., user@example.com</li>\n<li>Password: <input type="password" name="password" /> Choose wisely.</li>\n');
+assert(p.as_p() === '<p>Username: <input maxlength="10" type="text" name="username" /> e.g., user@example.com</p>\n<p>Password: <input type="password" name="password" /> Choose wisely.</p>\n');
+assert(p.as_table() === '<tr><th>Username:</th><td><input maxlength="10" type="text" name="username" /><br />e.g., user@example.com</td></tr>\n<tr><th>Password:</th><td><input type="password" name="password" /><br />Choose wisely.</td></tr>\n');
+
+var p = new UserRegistration({data: {username: 'foo'}, auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="foo" /> e.g., user@example.com</li>\n<li><ul class="errorlist"><li>This field is required.</li></ul>Password: <input type="password" name="password" /> Choose wisely.</li>\n');
+
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, help_text: 'e.g., user@example.com'});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    this.next = new fields.CharField({widget: widgets.HiddenInput, initial:'/', help_text: 'Redirect destination'});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" /> e.g., user@example.com</li>\n<li>Password: <input type="password" name="password" /><input type="hidden" name="next" value="/" /></li>\n');
