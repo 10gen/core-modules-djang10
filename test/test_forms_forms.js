@@ -455,3 +455,192 @@ assert(Object.isEmpty(f.errors.dict));
 assert(f.cleaned_data.username === 'mike');
 assert(f.cleaned_data.password1 === 'foo');
 assert(f.cleaned_data.password2 === 'foo');
+
+// Dynamic construction
+
+var Person = function() {
+    this.first_name = new fields.CharField();
+    this.last_name = new fields.CharField();
+    
+    forms.Form.apply(this, arguments);
+    
+    this.fields['birthday'] = new fields.DateField();
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var p = new Person({auto_id: false});
+assert(p.toString() === '<tr><th>First name:</th><td><input type="text" name="first_name" /></td></tr>\n<tr><th>Last name:</th><td><input type="text" name="last_name" /></td></tr>\n<tr><th>Birthday:</th><td><input type="text" name="birthday" /></td></tr>\n')
+
+var MyForm = function(params, field_list) {
+    forms.Form.apply(this, [params.merge({auto_id: false})]);
+    
+    for (var k in field_list) {
+        this.fields[k] = field_list[k];
+    }
+};
+MyForm.prototype.__proto__ = forms.Form.prototype;
+
+var myform = new MyForm({}, {'field1': new fields.CharField(), 'field2': new fields.CharField()});
+assert(myform.toString() === '<tr><th>Field1:</th><td><input type="text" name="field1" /></td></tr>\n<tr><th>Field2:</th><td><input type="text" name="field2" /></td></tr>\n');
+
+var myform = new MyForm({}, {'field3': new fields.CharField(), 'field4': new fields.CharField()});
+assert(myform.toString() === '<tr><th>Field3:</th><td><input type="text" name="field3" /></td></tr>\n<tr><th>Field4:</th><td><input type="text" name="field4" /></td></tr>\n');
+
+var MyForm = function(params, field_list) {
+    this.default_field_1 = new fields.CharField();
+    this.default_field_2 = new fields.CharField();
+    forms.Form.apply(this, [params.merge({auto_id: false})]);
+    
+    for (var k in field_list) {
+        this.fields[k] = field_list[k];
+    }
+};
+MyForm.prototype.__proto__ = forms.Form.prototype;
+
+var myform = new MyForm({}, {'field1': new fields.CharField(), 'field2': new fields.CharField()});
+assert(myform.toString() === '<tr><th>Default field 1:</th><td><input type="text" name="default_field_1" /></td></tr>\n<tr><th>Default field 2:</th><td><input type="text" name="default_field_2" /></td></tr>\n<tr><th>Field1:</th><td><input type="text" name="field1" /></td></tr>\n<tr><th>Field2:</th><td><input type="text" name="field2" /></td></tr>\n');
+
+var myform = new MyForm({}, {'field3': new fields.CharField(), 'field4': new fields.CharField()});
+assert(myform.toString() === '<tr><th>Default field 1:</th><td><input type="text" name="default_field_1" /></td></tr>\n<tr><th>Default field 2:</th><td><input type="text" name="default_field_2" /></td></tr>\n<tr><th>Field3:</th><td><input type="text" name="field3" /></td></tr>\n<tr><th>Field4:</th><td><input type="text" name="field4" /></td></tr>\n');
+
+// Changes to field attributes do not persist from one Form instance to another
+var Person = function(names_required, params) {
+    this.first_name = new fields.CharField({required: false});
+    this.last_name = new fields.CharField({required: false});
+    
+    forms.Form.apply(this, [params]);
+    
+    if (names_required) {
+        this.fields['first_name'].required = true;
+        this.fields['first_name'].widget.attrs['class'] = 'required';
+        this.fields['last_name'].required = true;
+        this.fields['last_name'].widget.attrs['class'] = 'required';
+    }
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var f = new Person(false);
+assert(f.get_bound_field('first_name').field.required === false);
+assert(f.get_bound_field('last_name').field.required === false);
+assert(Object.isEmpty(f.get_bound_field('first_name').field.widget.attrs));
+assert(Object.isEmpty(f.get_bound_field('last_name').field.widget.attrs));
+
+var f = new Person(true);
+assert(f.get_bound_field('first_name').field.required === true);
+assert(f.get_bound_field('last_name').field.required === true);
+assert(f.get_bound_field('first_name').field.widget.attrs['class'] === 'required');
+assert(f.get_bound_field('last_name').field.widget.attrs['class'] === 'required');
+
+var f = new Person(false);
+assert(f.get_bound_field('first_name').field.required === false);
+assert(f.get_bound_field('last_name').field.required === false);
+assert(Object.isEmpty(f.get_bound_field('first_name').field.widget.attrs));
+assert(Object.isEmpty(f.get_bound_field('last_name').field.widget.attrs));
+
+var Person = function(name_max_length, params) {
+    this.first_name = new fields.CharField({max_length: 30});
+    this.last_name = new fields.CharField({max_length: 30});
+    
+    forms.Form.apply(this, [params]);
+    
+    if (name_max_length) {
+        this.fields['first_name'].max_length = name_max_length;
+        this.fields['last_name'].max_length = name_max_length;
+    }
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var f = new Person();
+assert(f.get_bound_field('first_name').field.max_length === 30);
+assert(f.get_bound_field('last_name').field.max_length === 30);
+
+var f = new Person(20);
+assert(f.get_bound_field('first_name').field.max_length === 20);
+assert(f.get_bound_field('last_name').field.max_length === 20);
+
+var f = new Person();
+assert(f.get_bound_field('first_name').field.max_length === 30);
+assert(f.get_bound_field('last_name').field.max_length === 30);
+
+// HiddenInput widgets are displayed differently in the as_table(), as_ul()
+// and as_p() output of a Form -- their verbose names are not displayed, and a
+// separate row is not displayed. They're displayed in the last row of the
+// form, directly after that row's form element.
+var Person = function() {
+    this.first_name = new fields.CharField();
+    this.last_name = new fields.CharField();
+    this.hidden_text = new fields.CharField({widget: widgets.HiddenInput});
+    this.birthday = new fields.DateField();
+    
+    forms.Form.apply(this, arguments);
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var p = new Person({auto_id: false});
+assert(p.toString() === '<tr><th>First name:</th><td><input type="text" name="first_name" /></td></tr>\n<tr><th>Last name:</th><td><input type="text" name="last_name" /></td></tr>\n<tr><th>Birthday:</th><td><input type="text" name="birthday" /><input type="hidden" name="hidden_text" /></td></tr>\n');
+assert(p.as_ul() === '<li>First name: <input type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n<li>Birthday: <input type="text" name="birthday" /><input type="hidden" name="hidden_text" /></li>\n');
+assert(p.as_p() === '<p>First name: <input type="text" name="first_name" /></p>\n<p>Last name: <input type="text" name="last_name" /></p>\n<p>Birthday: <input type="text" name="birthday" /><input type="hidden" name="hidden_text" /></p>\n');
+
+// With auto_id set, a HiddenInput still gets an ID, but it doesn't get a label.
+var p = new Person({auto_id: 'id_%s'});
+assert(p.toString() === '<tr><th><label for="id_first_name">First name:</label></th><td><input type="text" name="first_name" id="id_first_name" /></td></tr>\n<tr><th><label for="id_last_name">Last name:</label></th><td><input type="text" name="last_name" id="id_last_name" /></td></tr>\n<tr><th><label for="id_birthday">Birthday:</label></th><td><input type="text" name="birthday" id="id_birthday" /><input type="hidden" name="hidden_text" id="id_hidden_text" /></td></tr>\n');
+assert(p.as_ul() === '<li><label for="id_first_name">First name:</label> <input type="text" name="first_name" id="id_first_name" /></li>\n<li><label for="id_last_name">Last name:</label> <input type="text" name="last_name" id="id_last_name" /></li>\n<li><label for="id_birthday">Birthday:</label> <input type="text" name="birthday" id="id_birthday" /><input type="hidden" name="hidden_text" id="id_hidden_text" /></li>\n');
+assert(p.as_p() === '<p><label for="id_first_name">First name:</label> <input type="text" name="first_name" id="id_first_name" /></p>\n<p><label for="id_last_name">Last name:</label> <input type="text" name="last_name" id="id_last_name" /></p>\n<p><label for="id_birthday">Birthday:</label> <input type="text" name="birthday" id="id_birthday" /><input type="hidden" name="hidden_text" id="id_hidden_text" /></p>\n');
+
+// If a field with a HiddenInput has errors, the as_table() and as_ul() output
+// will include the error message(s) with the text "(Hidden field [fieldname]) "
+// prepended. This message is displayed at the top of the output, regardless of
+// its field's order in the form.
+var p = new Person({data: {'first_name': 'John', 'last_name': 'Lennon', 'birthday': '1940-10-9'}, auto_id: false});
+assert(p.toString() === '<tr><td colspan="2"><ul class="errorlist"><li>(Hidden field hidden_text) This field is required.</li></ul></td></tr>\n<tr><th>First name:</th><td><input type="text" name="first_name" value="John" /></td></tr>\n<tr><th>Last name:</th><td><input type="text" name="last_name" value="Lennon" /></td></tr>\n<tr><th>Birthday:</th><td><input type="text" name="birthday" value="1940-10-9" /><input type="hidden" name="hidden_text" /></td></tr>\n');
+assert(p.as_ul() === '<li><ul class="errorlist"><li>(Hidden field hidden_text) This field is required.</li></ul></li>\n<li>First name: <input type="text" name="first_name" value="John" /></li>\n<li>Last name: <input type="text" name="last_name" value="Lennon" /></li>\n<li>Birthday: <input type="text" name="birthday" value="1940-10-9" /><input type="hidden" name="hidden_text" /></li>\n')
+assert(p.as_p() === '<ul class="errorlist"><li>(Hidden field hidden_text) This field is required.</li></ul>\n<p>First name: <input type="text" name="first_name" value="John" /></p>\n<p>Last name: <input type="text" name="last_name" value="Lennon" /></p>\n<p>Birthday: <input type="text" name="birthday" value="1940-10-9" /><input type="hidden" name="hidden_text" /></p>\n');
+
+// A corner case: It's possible for a form to have only HiddenInputs.
+var TestForm = function() {
+    this.foo = new fields.CharField({widget: widgets.HiddenInput});
+    this.bar = new fields.CharField({widget: widgets.HiddenInput});
+    
+    forms.Form.apply(this, arguments);
+};
+TestForm.prototype.__proto__ = forms.Form.prototype;
+
+var p = new TestForm({auto_id: False});
+assert(p.as_table() === '<input type="hidden" name="foo" /><input type="hidden" name="bar" />\n');
+assert(p.as_ul() === '<input type="hidden" name="foo" /><input type="hidden" name="bar" />\n');
+assert(p.as_p() === '<input type="hidden" name="foo" /><input type="hidden" name="bar" />\n');
+
+// A forms fields are displayed in the same order in which they were defined.
+var TestForm = function() {
+    this.field1 = new fields.CharField();
+    this.field2 = new fields.CharField();
+    this.field3 = new fields.CharField();
+    this.field4 = new fields.CharField();
+    this.field5 = new fields.CharField();
+    this.field6 = new fields.CharField();                  
+    this.field7 = new fields.CharField();
+    this.field8 = new fields.CharField();
+    this.field9 = new fields.CharField();
+    this.field10 = new fields.CharField();
+    this.field11 = new fields.CharField();
+    this.field12 = new fields.CharField();
+    this.field13 = new fields.CharField();
+    this.field14 = new fields.CharField();
+    
+    forms.Form.apply(this, arguments);
+};
+TestForm.prototype.__proto__ = forms.Form.prototype;
+
+var p = new TestForm({auto_id: false});
+assert(p.toString() === '<tr><th>Field1:</th><td><input type="text" name="field1" /></td></tr>\n<tr><th>Field2:</th><td><input type="text" name="field2" /></td></tr>\n<tr><th>Field3:</th><td><input type="text" name="field3" /></td></tr>\n<tr><th>Field4:</th><td><input type="text" name="field4" /></td></tr>\n<tr><th>Field5:</th><td><input type="text" name="field5" /></td></tr>\n<tr><th>Field6:</th><td><input type="text" name="field6" /></td></tr>\n<tr><th>Field7:</th><td><input type="text" name="field7" /></td></tr>\n<tr><th>Field8:</th><td><input type="text" name="field8" /></td></tr>\n<tr><th>Field9:</th><td><input type="text" name="field9" /></td></tr>\n<tr><th>Field10:</th><td><input type="text" name="field10" /></td></tr>\n<tr><th>Field11:</th><td><input type="text" name="field11" /></td></tr>\n<tr><th>Field12:</th><td><input type="text" name="field12" /></td></tr>\n<tr><th>Field13:</th><td><input type="text" name="field13" /></td></tr>\n<tr><th>Field14:</th><td><input type="text" name="field14" /></td></tr>\n');
+
+
+
+
+
+
+
+
+
+
+
