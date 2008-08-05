@@ -255,7 +255,7 @@ var BoundField = forms.BoundField = function(form, field, name) {
     this.name = name;
     this.html_name = form.add_prefix(name);
     
-    this.label = field.label || pretty_name(name);
+    this.label = (field.label !== null) ? field.label : pretty_name(name);
     this.help_text = field.help_text || '';
 };
 

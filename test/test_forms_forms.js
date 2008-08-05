@@ -634,13 +634,88 @@ TestForm.prototype.__proto__ = forms.Form.prototype;
 var p = new TestForm({auto_id: false});
 assert(p.toString() === '<tr><th>Field1:</th><td><input type="text" name="field1" /></td></tr>\n<tr><th>Field2:</th><td><input type="text" name="field2" /></td></tr>\n<tr><th>Field3:</th><td><input type="text" name="field3" /></td></tr>\n<tr><th>Field4:</th><td><input type="text" name="field4" /></td></tr>\n<tr><th>Field5:</th><td><input type="text" name="field5" /></td></tr>\n<tr><th>Field6:</th><td><input type="text" name="field6" /></td></tr>\n<tr><th>Field7:</th><td><input type="text" name="field7" /></td></tr>\n<tr><th>Field8:</th><td><input type="text" name="field8" /></td></tr>\n<tr><th>Field9:</th><td><input type="text" name="field9" /></td></tr>\n<tr><th>Field10:</th><td><input type="text" name="field10" /></td></tr>\n<tr><th>Field11:</th><td><input type="text" name="field11" /></td></tr>\n<tr><th>Field12:</th><td><input type="text" name="field12" /></td></tr>\n<tr><th>Field13:</th><td><input type="text" name="field13" /></td></tr>\n<tr><th>Field14:</th><td><input type="text" name="field14" /></td></tr>\n');
 
+// Some Field classes have an effect on the HTML attributes of their associated
+// Widget. If you set max_length in a CharField and its associated widget is
+// either a TextInput or PasswordInput, then the widget's rendered HTML will
+// include the "maxlength" attribute.
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10});
+    this.password = new fields.CharField({max_length: 10, widget: widgets.PasswordInput});
+    this.realname = new fields.CharField({max_length: 10, widget: widgets.TextInput});
+    this.address = new fields.CharField();
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
 
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" /></li>\n<li>Password: <input maxlength="10" type="password" name="password" /></li>\n<li>Realname: <input maxlength="10" type="text" name="realname" /></li>\n<li>Address: <input type="text" name="address" /></li>\n');
 
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, widget: widgets.TextInput({'maxlength': 20})});
+    this.password = new fields.CharField({max_length: 10, widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
 
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" /></li>\n<li>Password: <input maxlength="10" type="password" name="password" /></li>\n');
 
+// Specifying Labels-----------------
 
+// You can specify the label for a field by using the 'label' argument to a Field
+//	class. If you don't specify 'label', Django will use the field name with
+//	underscores converted to spaces, and the initial letter capitalized.
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, label: 'Your username'});
+    this.password1 = new fields.CharField({widget: widgets.PasswordInput});
+    this.password2 = new fields.CharField({widget: widgets.PasswordInput, label: 'Password (again)'});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
 
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li>Your username: <input maxlength="10" type="text" name="username" /></li>\n<li>Password1: <input type="password" name="password1" /></li>\n<li>Password (again): <input type="password" name="password2" /></li>\n');
 
+var Questions = function() {
+    this.q1 = new fields.CharField({label: 'The first question'});
+    this.q2 = new fields.CharField({label: 'What is your name?'});
+    this.q3 = new fields.CharField({label: 'The answer to life is:'});
+    this.q4 = new fields.CharField({label: 'Answer this question!'});
+    this.q5 = new fields.CharField({label: 'The last question. Period.'});
+    forms.Form.apply(this, arguments);
+};
+Questions.prototype.__proto__ = forms.Form.prototype;
 
+assert(new Questions({auto_id: false}).as_p() === '<p>The first question: <input type="text" name="q1" /></p>\n<p>What is your name? <input type="text" name="q2" /></p>\n<p>The answer to life is: <input type="text" name="q3" /></p>\n<p>Answer this question! <input type="text" name="q4" /></p>\n<p>The last question. Period. <input type="text" name="q5" /></p>\n');
+assert(new Questions().as_p() === '<p><label for="id_q1">The first question:</label> <input type="text" name="q1" id="id_q1" /></p>\n<p><label for="id_q2">What is your name?</label> <input type="text" name="q2" id="id_q2" /></p>\n<p><label for="id_q3">The answer to life is:</label> <input type="text" name="q3" id="id_q3" /></p>\n<p><label for="id_q4">Answer this question!</label> <input type="text" name="q4" id="id_q4" /></p>\n<p><label for="id_q5">The last question. Period.</label> <input type="text" name="q5" id="id_q5" /></p>\n');
 
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, label: ''});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
 
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li> <input maxlength="10" type="text" name="username" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({auto_id: 'id_%s'});
+assert(p.as_ul() === '<li> <input maxlength="10" type="text" name="username" id="id_username" /></li>\n<li><label for="id_password">Password:</label> <input type="password" name="password" id="id_password" /></li>\n');
+
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10, label: null});
+    this.password = new fields.CharField({widget: widgets.PasswordInput});
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var p = new UserRegistration({auto_id: false});
+assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
+
+var p = new UserRegistration({auto_id: 'id_%s'});
+assert(p.as_ul() === '<li><label for="id_username">Username:</label> <input maxlength="10" type="text" name="username" id="id_username" /></li>\n<li><label for="id_password">Password:</label> <input type="password" name="password" id="id_password" /></li>\n');
