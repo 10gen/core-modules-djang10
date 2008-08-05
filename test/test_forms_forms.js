@@ -369,3 +369,89 @@ assert(f.toString() === '<tr><th>Special name:</th><td><ul class="errorlist"><li
 var f = new EscapingForm({data: {'special_name': "Should escape < & > and <script>alert('xss')</script>"}, auto_id: false});
 assert(f.toString() === '<tr><th>Special name:</th><td><ul class="errorlist"><li>Something&#39;s wrong with &#39;Should escape &lt; &amp; &gt; and &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;&#39;</li></ul><input type="text" name="special_name" value="Should escape &lt; &amp; &gt; and &lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;" /></td></tr>\n');
 
+// Validating multiple fields in relation to another
+
+//  There are a couple of ways to do multiple-field validation. If you want the
+//	validation message to be associated with a particular field, implement the
+//	clean_XXX() method on the Form, where XXX is the field name. As in
+//	Field.clean(), the clean_XXX() method should return the cleaned value. In the
+//	clean_XXX() method, you have access to self.cleaned_data, which is a dictionary
+//	of all the data that has been cleaned *so far*, in order by the fields,
+//	including the current field (e.g., the field XXX if you're in clean_XXX()).
+
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10});
+    this.password1 = new fields.CharField({widget: widgets.PasswordInput});
+    this.password2 = new fields.CharField({widget: widgets.PasswordInput});
+    var that = this;
+    this.clean_password2 = function() {
+        if (that.cleaned_data['password1'] && that.cleaned_data['password2'] && that.cleaned_data['password1'] !== that.cleaned_data['password2']) {
+            throw new util.ValidationError('Please make sure your passwords match.');
+        }
+        return that.cleaned_data['password2'];
+    };
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var f = new UserRegistration({auto_id: false});
+assert(Object.isEmpty(f.errors.dict));
+
+var f = new UserRegistration({data: {}, auto_id: false});
+assert(f.errors.dict['username'].list[0] === 'This field is required.');
+assert(f.errors.dict['password1'].list[0] === 'This field is required.');
+assert(f.errors.dict['password2'].list[0] === 'This field is required.');
+
+var f = new UserRegistration({data: {'username': 'mike', password1: 'foo', password2: 'bar'}, auto_id: false});
+assert(f.errors.dict['password2'].list[0] === 'Please make sure your passwords match.');
+
+var f = new UserRegistration({data: {'username': 'mike', password1: 'foo', password2: 'foo'}, auto_id: false});
+assert(Object.isEmpty(f.errors.dict));
+assert(f.cleaned_data.username === 'mike');
+assert(f.cleaned_data.password1 === 'foo');
+assert(f.cleaned_data.password2 === 'foo');
+
+//  Another way of doing multiple-field validation is by implementing the
+//	Form's clean() method. If you do this, any ValidationError raised by that
+//	method will not be associated with a particular field; it will have a
+//	special-case association with the field named '__all__'.
+//	Note that in Form.clean(), you have access to self.cleaned_data, a dictionary of
+//	all the fields/values that have *not* raised a ValidationError. Also note
+//	Form.clean() is required to return a dictionary of all clean data.
+
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10});
+    this.password1 = new fields.CharField({widget: widgets.PasswordInput});
+    this.password2 = new fields.CharField({widget: widgets.PasswordInput});
+    var that = this;
+    this.clean = function() {
+        if (that.cleaned_data['password1'] && that.cleaned_data['password2'] && that.cleaned_data['password1'] !== that.cleaned_data['password2']) {
+            throw new util.ValidationError('Please make sure your passwords match.');
+        }
+        return that.cleaned_data;
+    };
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var f = new UserRegistration({auto_id: false});
+assert(Object.isEmpty(f.errors.dict));
+
+var f = new UserRegistration({data: {}, auto_id: false});
+assert(f.as_table() === '<tr><th>Username:</th><td><ul class="errorlist"><li>This field is required.</li></ul><input maxlength="10" type="text" name="username" /></td></tr>\n<tr><th>Password1:</th><td><ul class="errorlist"><li>This field is required.</li></ul><input type="password" name="password1" /></td></tr>\n<tr><th>Password2:</th><td><ul class="errorlist"><li>This field is required.</li></ul><input type="password" name="password2" /></td></tr>\n');
+assert(f.errors.dict['username'].list[0] === 'This field is required.');
+assert(f.errors.dict['password1'].list[0] === 'This field is required.');
+assert(f.errors.dict['password2'].list[0] === 'This field is required.');
+
+var f = new UserRegistration({data: {'username': 'mike', password1: 'foo', password2: 'bar'}, auto_id: false});
+assert(f.errors.dict['__all__'].list[0] === 'Please make sure your passwords match.');
+assert(f.as_table() === '<tr><td colspan="2"><ul class="errorlist"><li>Please make sure your passwords match.</li></ul></td></tr>\n<tr><th>Username:</th><td><input maxlength="10" type="text" name="username" value="mike" /></td></tr>\n<tr><th>Password1:</th><td><input type="password" name="password1" value="foo" /></td></tr>\n<tr><th>Password2:</th><td><input type="password" name="password2" value="bar" /></td></tr>\n');
+assert(f.as_ul() === '<li><ul class="errorlist"><li>Please make sure your passwords match.</li></ul></li>\n<li>Username: <input maxlength="10" type="text" name="username" value="mike" /></li>\n<li>Password1: <input type="password" name="password1" value="foo" /></li>\n<li>Password2: <input type="password" name="password2" value="bar" /></li>\n');
+
+var f = new UserRegistration({data: {'username': 'mike', 'password1': 'foo', 'password2': 'foo'}, auto_id: false});
+assert(Object.isEmpty(f.errors.dict));
+assert(f.cleaned_data.username === 'mike');
+assert(f.cleaned_data.password1 === 'foo');
+assert(f.cleaned_data.password2 === 'foo');

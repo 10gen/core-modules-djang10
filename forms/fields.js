@@ -35,16 +35,18 @@ var Field = fields.Field = function(params) {
     this.label = params.label;
     this.initial = params.initial;
     this.help_text = params.help_text;
-    if(params.widget != null)
-        this.widget = params.widget;
+    
+    var widget = params.widget || this.widget;
     
     //instantiate the widget if it needs it
-    if (this.widget instanceof Function) {
-        this.widget = new this.widget();
+    if (widget instanceof Function) {
+        widget = new widget();
     }
     
     //get field specific html attributes to apply for the current widget
-    Object.extend(this.widget.attrs, this.widget_attrs(this.widget));
+    widget.attrs = widget.attrs.merge(this.widget_attrs(widget));
+    
+    this.widget = widget;
     
     //get error messages
     this.error_messages = {};
@@ -125,15 +127,14 @@ CharField.prototype = {
         return value;
     },
     
-    widget_attrs: function(widget) {
+    widget_attrs: function(widget) {        
         var attrs = {};
         
         if(this.max_length != null) {
-            if(Object.instanceOf(widget, widgets.TextInput) || Object.instanceOf(widget, widgets.PasswordInput)) {
+            if(widget._use_max_length_attr) {
                 attrs["maxlength"] = this.max_length;
             }
         }
-        
         return attrs;
     }
 };

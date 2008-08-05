@@ -84,7 +84,8 @@ var TextInput = widgets.TextInput = function(attrs) {
 
 TextInput.prototype = {
     __proto__ : Input.prototype,
-
+    _use_max_length_attr: true,
+    
     input_type: "text"
 };
 
@@ -98,7 +99,8 @@ var PasswordInput = widgets.PasswordInput = function(attrs, render_value) {
 
 PasswordInput.prototype = {
     __proto__ : Input.prototype,
-
+    _use_max_length_attr: true,
+    
     input_type: "password",
 
     render: function(name, value, attrs) {

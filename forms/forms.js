@@ -48,7 +48,7 @@ var Form = forms.Form = function(params) {
     this.is_bound = (params.data != null) || (params.files != null);
 };
 
-Form.NON_FIELD_ERRORS = "__NON_FIELD_ERRORS_KEY__";
+Form.NON_FIELD_ERRORS = "__all__";
 
 Form.prototype = {
     toString: function() {
@@ -71,7 +71,7 @@ Form.prototype = {
     
     _html_output: function(normal_row, error_row, row_ender, help_text_html, errors_on_separate_row) {
         var top_errors = this.non_field_errors();
-        
+
         output = [];
         hidden_fields = [];
         
@@ -157,7 +157,7 @@ Form.prototype = {
     },
     
     non_field_errors: function() {
-        return this.errors.dict[this.NON_FIELD_ERRORS] || new this.error_class();
+        return this.errors.dict[Form.NON_FIELD_ERRORS] || new this.error_class();
     },
     
     full_clean: function() {
@@ -199,8 +199,8 @@ Form.prototype = {
         //callback
         try {
             this.cleaned_data = this.clean();
-        } catch(e if Object.instanceOf(e, ValidationError)) {
-            this._errors.dict[ValidationError.NON_FIELD_ERRORS] = e.message;
+        } catch(e if e instanceof util.ValidationError) {
+            this._errors.dict[util.ValidationError.NON_FIELD_ERRORS] = e.message;
         }
         
         if(!Object.isEmpty(this._errors.dict)) {
