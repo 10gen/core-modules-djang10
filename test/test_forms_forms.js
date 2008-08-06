@@ -1053,3 +1053,122 @@ assert(p.is_valid());
 assert(p.cleaned_data['first_name'] === 'John');
 assert(p.cleaned_data['last_name'] === 'Lennon');
 assert(p.cleaned_data['birthday'] == new Date(1940, 9, 9));
+
+//# Forms with NullBooleanFields ################################################
+// 
+// NullBooleanField is a bit of a special case because its presentation (widget)
+// is different than its data. This is handled transparently, though.
+var Person = function() {
+    this.name = new fields.CharField();
+    this.is_cool = new fields.NullBooleanField();
+    
+    forms.Form.apply(this, arguments);
+};
+Person.prototype.__proto__ = forms.Form.prototype;
+
+var p = new Person({data: {'name': 'Joe'}, auto_id: false});
+assert(p.get_bound_field('is_cool').toString() === '<select name="is_cool">\n<option value="1" selected="selected">Unknown</option>\n<option value="2">Yes</option>\n<option value="3">No</option>\n</select>');
+
+var p = new Person({data: {'name': 'Joe', 'is_cool': 1}, auto_id: false});
+assert(p.get_bound_field('is_cool').toString() === '<select name="is_cool">\n<option value="1" selected="selected">Unknown</option>\n<option value="2">Yes</option>\n<option value="3">No</option>\n</select>');
+
+var p = new Person({data: {'name': 'Joe', 'is_cool': 2}, auto_id: false});
+assert(p.get_bound_field('is_cool').toString() === '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
+
+var p = new Person({data: {'name': 'Joe', 'is_cool': 3}, auto_id: false});
+assert(p.get_bound_field('is_cool').toString() === '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
+
+var p = new Person({data: {'name': 'Joe', 'is_cool': true}, auto_id: false});
+assert(p.get_bound_field('is_cool').toString() === '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
+
+var p = new Person({data: {'name': 'Joe', 'is_cool': false}, auto_id: false});
+assert(p.get_bound_field('is_cool').toString() === '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
+
+//# Forms with FileFields ################################################
+// 
+// FileFields are a special case because they take their data from the request.FILES,
+// not request.POST.
+var FileForm = function() {
+    this.file1 = new fields.FileField();
+    
+    forms.Form.apply(this, arguments);
+};
+FileForm.prototype.__proto__ = forms.Form.prototype;
+
+var f = new FileForm({auto_id: false});
+assert(f.toString() === '<tr><th>File1:</th><td><input type="file" name="file1" /></td></tr>\n');
+
+var f = new FileForm({data: {}, files: {}, auto_id: false});
+assert(f.toString() === '<tr><th>File1:</th><td><ul class="errorlist"><li>This field is required.</li></ul><input type="file" name="file1" /></td></tr>\n');
+
+var f = new FileForm({data: {}, files: {'file1': openFile("a file that does not exist")}, auto_id: false});
+assert(f.toString() === '<tr><th>File1:</th><td><ul class="errorlist"><li>The submitted file is empty.</li></ul><input type="file" name="file1" /></td></tr>\n');
+
+var f = new FileForm({data: {}, files: {'file1': 'This isnt a file'}, auto_id: false});
+assert(f.toString() === '<tr><th>File1:</th><td><ul class="errorlist"><li>No file was submitted. Check the encoding type on the form.</li></ul><input type="file" name="file1" /></td></tr>\n');
+
+var file = openFile('name');
+file.length = 5;
+var f = new FileForm({data:{}, files: {'file1': file}, auto_id: false});
+assert(f.toString() === '<tr><th>File1:</th><td><input type="file" name="file1" /></td></tr>\n');
+assert(f.is_valid());
+
+// Basic form processing in a view
+var UserRegistration = function() {
+    this.username = new fields.CharField({max_length: 10});
+    this.password1 = new fields.CharField({widget: widgets.PasswordInput});
+    this.password2 = new fields.CharField({widget: widgets.PasswordInput});
+    
+    var that = this;
+    this.clean = function() {
+        if (that.cleaned_data['password1'] && that.cleaned_data['password2'] && that.cleaned_data['password1'] !== that.cleaned_data['password2']) {
+            throw new util.ValidationError('Please make sure your passwords match.');
+        }
+        return that.cleaned_data
+    };
+    
+    forms.Form.apply(this, arguments);
+};
+UserRegistration.prototype.__proto__ = forms.Form.prototype;
+
+var my_function = function(method, post_data) {
+    var form;
+    if (method === 'POST') {
+        form = new UserRegistration({data: post_data, auto_id: false});
+    } else {
+        form = new UserRegistration({auto_id: false});
+    }
+    if (form.is_valid()) {
+        return 'VALID: ' + tojson(form.cleaned_data);
+    }
+    return util.simplePythonFormat('<form action="" method="post">\n<table>\n%s</table>\n<input type="submit" />\n</form>\n', form);
+};
+
+assert(my_function('GET', {}) === '<form action="" method="post">\n<table>\n<tr><th>Username:</th><td><input maxlength="10" type="text" name="username" /></td></tr>\n<tr><th>Password1:</th><td><input type="password" name="password1" /></td></tr>\n<tr><th>Password2:</th><td><input type="password" name="password2" /></td></tr>\n</table>\n<input type="submit" />\n</form>\n');
+assert(my_function('POST', {'username': 'this-is-a-long-username', 'password1': 'foo', 'password2': 'bar'}) === '<form action="" method="post">\n<table>\n<tr><td colspan="2"><ul class="errorlist"><li>Please make sure your passwords match.</li></ul></td></tr>\n<tr><th>Username:</th><td><ul class="errorlist"><li>Ensure this value has at most 10 characters (it has 23).</li></ul><input maxlength="10" type="text" name="username" value="this-is-a-long-username" /></td></tr>\n<tr><th>Password1:</th><td><input type="password" name="password1" value="foo" /></td></tr>\n<tr><th>Password2:</th><td><input type="password" name="password2" value="bar" /></td></tr>\n</table>\n<input type="submit" />\n</form>\n');
+assert(my_function('POST', {'username': 'mike', password1: 'secret', password2: 'secret'}) === 'VALID: { "username" : "mike" , "password1" : "secret" , "password2" : \n"secret"  }\n');
+
+// The empty_permitted attribute
+
+// Sometimes (pretty much in formsets) we want to allow a form to pass validation
+// if it is completely empty. We can accomplish this by using the empty_permitted
+// agrument to a form constructor.
+
+var SongForm = function() {
+    this.artist = new fields.CharField();
+    this.name = new fields.CharField();
+    
+    forms.Form.apply(this, arguments);
+};
+SongForm.prototype.__proto__ = forms.Form.prototype;
+
+var data = {'artist': '', 'song': ''};
+
+var f = new SongForm({data: data, empty_permitted: false});
+assert(!f.is_valid());
+assert(!f.cleaned_data);
+
+var f = new SongForm({data: data, empty_permitted: true});
+assert(f.is_valid());
+assert(Object.isEmpty(f.errors.dict));
+assert(Object.isEmpty(f.cleaned_data));

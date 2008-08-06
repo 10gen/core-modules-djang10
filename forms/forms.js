@@ -50,6 +50,11 @@ var Form = forms.Form = function(params) {
 
 Form.NON_FIELD_ERRORS = "__all__";
 
+/*
+    NOTE use get_bound_field to access individual fields of the form. In 
+    django you can access them like form['some_field'] but here you must do 
+    form.get_bound_field('some_field').
+*/
 Form.prototype = {
     toString: function() {
         return this.as_table();
@@ -127,7 +132,8 @@ Form.prototype = {
             if (output.length) {
                 var last_row = output.pop();
                 output.push(
-                    last_row.substring(0, last_row.length - row_ender.length) + str_hidden + row_ender
+                    last_row.substring(0, last_row.length - row_ender.length) + 
+                        str_hidden + row_ender
                 );
             }
             else {
@@ -142,7 +148,8 @@ Form.prototype = {
     },
     
     as_table: function() {
-        return this._html_output('<tr><th>%(label)s</th><td>%(errors)s%(field)s%(help_text)s</td></tr>',
+        return this._html_output(
+                '<tr><th>%(label)s</th><td>%(errors)s%(field)s%(help_text)s</td></tr>',
                 '<tr><td colspan="2">%s</td></tr>', '</td></tr>', '<br />%s', false);
     },
     
@@ -175,7 +182,8 @@ Form.prototype = {
         for(var name in this.fields) {
             var field = this.fields[name];
             
-            var value = field.widget.value_from_datadict(this.data, this.files, this.add_prefix(name));
+            var value = field.widget.value_from_datadict(this.data,
+                                this.files, this.add_prefix(name));
             try {
                 if (field instanceof fields.FileField) {
                     var initial = this.initial[name] || field.initial;
@@ -213,7 +221,7 @@ Form.prototype = {
     },
     
     has_changed: function() {
-        return (this.changed_data) ? true : false;
+        return (this.changed_data.length) ? true : false;
     },
     
     is_multipart: function() {
@@ -238,7 +246,7 @@ Form.prototype.__defineGetter__("changed_data", function() {
         for (var name in this.fields) {
            var field = this.fields[name];
            var prefixed_name = this.add_prefix(name);
-           var data_value = field.widget.value_fram_datadict(this.data, this.files, prefixed_name);
+           var data_value = field.widget.value_from_datadict(this.data, this.files, prefixed_name);
            var initial_value = (this.initial.containsKey(name)) ? this.initial[name] : field.initial;
            if (field.widget._has_changed(initial_value, data_value)) {
                this._changed_data.push(name)
@@ -274,7 +282,8 @@ BoundField.prototype = {
         
         var data;
         if (!this.form.is_bound) {
-            data = this.form.initial.containsKey(this.name) ? this.form.initial[this.name] : this.field.initial;
+            data = this.form.initial.containsKey(this.name) ? 
+                        this.form.initial[this.name] : this.field.initial;
             if (data instanceof Function) {
                 data = data();
             }

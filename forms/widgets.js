@@ -20,7 +20,7 @@ core.modules.djang10.forms.util();
 widgets = {};
 
 /*
-    TODO it might make more sense for widgets to take an object like {attrs: attrs, choices: choices}
+    NOTE it might make more sense for widgets to take an object like {attrs: attrs, choices: choices}
 */
 var Widget = widgets.Widget = function(attrs) {
     this.attrs = attrs || {};
