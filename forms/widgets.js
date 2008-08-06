@@ -37,7 +37,7 @@ Widget.prototype = {
     },
     
     value_from_datadict: function(data, files, name){
-        return data[name];
+        return data && data[name];
     },
     
     _has_changed: function(initial, data) {
@@ -213,6 +213,9 @@ CheckboxInput.prototype = {
     },
     
     value_from_datadict: function(data, files, name) {
+        if (!data) {
+            return null;
+        }
         if (typeof(data[name]) == "undefined") {
             return false;
         }
@@ -301,7 +304,7 @@ NullBooleanSelect.prototype = {
     },
     
     value_from_datadict: function(data, files, name) {
-        var value = data[name];
+        var value = data && data[name];
         
         switch (value) {
             case true:
