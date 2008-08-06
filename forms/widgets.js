@@ -173,7 +173,7 @@ FileInput.prototype = {
     },
     
     value_from_datadict: function(data, files, name) {
-        return files[name];
+        return files && files[name];
     },
     
     _has_changed: function(initial, data) {
