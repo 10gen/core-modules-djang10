@@ -365,6 +365,10 @@ test.assertThrows(new util.ValidationError("No file was submitted. Check the enc
 test.assertThrows(new util.ValidationError("The submitted file is empty."), f, fields.FileField.prototype.clean, openFile('name'), null);
 test.assertThrows(new util.ValidationError("The submitted file is empty."), f, fields.FileField.prototype.clean, openFile('name'), '');
 
+var f = new fields.FileField({required: false});
+assert(f.clean('') === null);
+assert(f.clean('', '') === null);
+
 var fakeFile = openFile('name');
 fakeFile.length = 20;
 
@@ -406,6 +410,7 @@ assert(f.clean('http://www.google.com') == 'http://www.google.com/');
 test.assertThrows(new util.ValidationError("Enter a valid URL."), f, fields.URLField.prototype.clean, 'http://example');
 test.assertThrows(new util.ValidationError("This URL appears to be a broken link."), f, fields.URLField.prototype.clean, 'http://www.broken.djangoproject.com');
 test.assertThrows(new util.ValidationError("This URL appears to be a broken link."), f, fields.URLField.prototype.clean, 'http://www.google.com/we-love-microsoft.html');
+test.assertThrows(new util.ValidationError("This URL appears to be a broken link."), f, fields.URLField.prototype.clean, 'www.a-really-long-url-that-probably-doesnt-exist-aseonuthaesnuothaeusnathua.com');
 
 var f = new fields.URLField({verify_exists: true, required: false});
 assert(f.clean('') == '');

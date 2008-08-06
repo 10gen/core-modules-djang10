@@ -526,7 +526,7 @@ EmailField.prototype = {
     }
 };
 
-var FileField = fields.FileField = function(param) {
+var FileField = fields.FileField = function(params) {
     Field.call(this, params);
 };
 
