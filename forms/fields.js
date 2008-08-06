@@ -602,7 +602,7 @@ URLField.prototype = {
             var req = new XMLHttpRequest("GET", value);
             var res = req.send();
             // TODO this should probably follow redirects and check that the resulting page actually exists
-            if (res.status >= 400) { // 400s and 500s are error codes
+            if (!res || !res.status || res.status >= 400) { // 400s and 500s are error codes
                 throw new util.ValidationError(this.error_messages['invalid_link']);
             }
         }
@@ -932,6 +932,8 @@ var SplitDateTimeField = fields.SplitDateTimeField = function(params) {
 
 SplitDateTimeField.prototype = {
     __proto__: MultiValueField.prototype,
+    
+    widget: widgets.SplitDateTimeWidget,
     
     default_error_messages: {
         'invalid_date': 'Enter a valid date.',
