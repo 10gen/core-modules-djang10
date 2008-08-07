@@ -575,20 +575,23 @@ assert(f.clean('') === '');
 assert(f.clean(null) === '');
 
 // # FilePathField ###############################################################
-var path = '../core-modules/djang10/master/'
+
+
+var path = __path__.getRoot() + '/../';
+
 var f = new fields.FilePathField({path: path})
 test.assertThrows(new util.ValidationError('Select a valid choice. install.js is not one of the available choices.'), f, fields.FilePathField.clean, 'install.js');
-assert(f.clean(path + 'install.js') == '../core-modules/djang10/master/install.js');
+assert(f.clean(path + 'install.js') == path + 'install.js');
 
 var f = new fields.FilePathField({path: path, match: '^.*?\.js$'});
 test.assertThrows(new util.ValidationError('Select a valid choice. ../core-modules/djang10/master/readme.txt is not one of the available choices.'), f, fields.FilePathField.clean, path + 'readme.txt');
-assert(f.clean(path + 'install.js') == '../core-modules/djang10/master/install.js');
+assert(f.clean(path + 'install.js') == path + 'install.js');
 test.assertThrows(new util.ValidationError('Select a valid choice. ../core-modules/djang10/master/forms/fields.js is not one of the available choices.'), f, fields.FilePathField.clean, path + 'forms/fields.js');
 
 var f = new fields.FilePathField({path: path, recursive: true, match: '^.*?\.js$'});
 test.assertThrows(new util.ValidationError('Select a valid choice. ../core-modules/djang10/master/readme.txt is not one of the available choices.'), f, fields.FilePathField.clean, path + 'readme.txt');
-assert(f.clean(path + 'install.js') == '../core-modules/djang10/master/install.js');
-assert(f.clean(path + 'forms/fields.js') == '../core-modules/djang10/master/forms/fields.js');
+assert(f.clean(path + 'install.js') == path + 'install.js');
+assert(f.clean(path + 'forms/fields.js') == path + 'forms/fields.js');
 
 // # SplitDateTimeField ##########################################################
 
