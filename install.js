@@ -73,14 +73,9 @@ var prepModelForApp = function( appDir , appScope ) {
         if ( prev.contains( i ) )
             continue;
         log( "added class " + i + " to scope.  Coll is : " + db[appDir.getName()][i] + " : " + tojson(db[appDir.getName()][i]));;
-        appScope[i] = scope[i];
-        appScope[i].prototype.__collection = db[appDir.getName()][i];
-        appScope[i].prototype.save = function() { this.__collection.save(this); }
-        appScope[i].prototype.objects = {
-                                            __collection : appScope[i].prototype.__collection,
-            
-                                            all : function() { return this.__collection.find(); }
-        };
+        var obj = scope.get(i);
+        obj.__setup_collection(appDir.getName(), i);
+        appScope.set(i, obj);
     }
 };
 
