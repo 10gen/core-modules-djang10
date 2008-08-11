@@ -21,9 +21,9 @@ core.modules.djang10.models.models();
 var db = connect("test");
 
 var Article = models.new_model({
-    some_field: 10
+    some_non_field: 10,
+    some_field: new models.Field({'default': 10})
 });
-
 // This would normally get called by install.js
 Article.__setup_collection('testapp', 'Article');
 
@@ -32,11 +32,18 @@ db.testapp.Article.remove({});
 assert(Object.isEmpty(Article.objects.all()));
 
 var a = new Article();
+assert(a.some_non_field === 10);
+assert(a.some_field === 10);
+assert(a.id === null);
 a.save();
+assert(a.id !== null);
+assert(a.id === a._id);
 
 var b = new Article();
 b.some_field = 20;
 b.save();
+assert(b.some_non_field === 10);
+assert(b.some_field === 20);
 
 assert(Article.objects.all().count() === 2);
 assert(Article.objects.all()[0].some_field === 10);
@@ -46,13 +53,12 @@ assert(Article.__collection.toString() === "{DBCollection:testapp.Article}");
 
 // Try using a different collection name
 var Article = models.new_model({
-    some_field: 10,
+    some_non_field: 10,
+    some_field: new models.Field({'default': 10}),
     Meta: {
         db_table: "Custom"
     }
 });
-
-// This would normally get called by install.js
 // Here the second argument will be overriden by the Meta.db_table that we set above.
 Article.__setup_collection('testapp', 'Article');
 
@@ -61,14 +67,34 @@ db.testapp.Custom.remove({});
 assert(Object.isEmpty(Article.objects.all()));
 
 var a = new Article();
+assert(a.some_non_field === 10);
+assert(a.some_field === 10);
+assert(a.id === null);
 a.save();
+assert(a.id !== null);
+assert(a.id === a._id);
 
 var b = new Article();
 b.some_field = 20;
 b.save();
+assert(b.some_non_field === 10);
+assert(b.some_field === 20);
 
 assert(Article.objects.all().count() === 2);
 assert(Article.objects.all()[0].some_field === 10);
 assert(Article.objects.all()[1].some_field === 20);
 
 assert(Article.__collection.toString() === "{DBCollection:testapp.Custom}");
+
+// Test having a property named id
+var Article = models.new_model({
+    id: 10
+});
+Article.__setup_collection('testapp', 'Article');
+
+db.testapp.Article.remove({});
+
+var a = new Article();
+assert(a.id === 10);
+a.save();
+assert(a.id === 10);
