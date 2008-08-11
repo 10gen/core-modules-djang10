@@ -42,15 +42,63 @@ models.new_model = function(props) {
                         };
                     }) (key));
                 
+                // This is hacky...
+                // Create an additional setter for the name given by db_column.
+                // This way when an object gets pulled out of the db it will get
+                // set here instead of creating some unused property.
+                Class.prototype.__defineSetter__(props[key].column,
+                    (function(key) {
+                        return function(val) {
+                            this._meta._fields[key].save_form_data(this._meta._field_values, val);
+                        };
+                    }) (key));
+                
             } else {
+                // We have to do this because we define the setter above. This
+                // will be unnecessary once we switch to using a mongo hook
+                // instead of the hacky setter method.
+                // if (Class.prototype.__lookupSetter__(key)) {
+                    /*
+                        TODO Throw a more standard exception here
+                    */
+                   // throw "column name matches existing property name: " + field.column;
+                // }
                 this[key] = props[key];
             }
         }
     };
 
     Class.prototype = {
+        // Create a slimmed down object and store that in the database instead.
+        // Also use db_column names for fields instead of their regular names.
         save: function() {
-            this.__collection.save(this);
+            var to_save = {_id: this._id};
+
+            for (var key in this) {
+                // Don't bother saving stuff that is in the prototype
+                if (this.hasOwnProperty(key)) {
+                    // We handle _meta seperately
+                    if (key !== '_meta') {
+                        to_save[key] = this[key];
+                    }
+                }
+            }
+            // Now save the meta stuff
+            for (var key in this._meta._fields) {
+                var field = this._meta._fields[key];
+                
+                // Make sure there are no name conflicts
+                if (field.column in to_save) {
+                    /*
+                        TODO Throw a more standard exception here
+                    */
+                    throw "column name matches existing property name: " + field.column;
+                }
+                
+                to_save[field.column] = this[field.attname];
+            }
+            this.__collection.save(to_save);
+            this._id = to_save._id;
         },
         
         objects: {
@@ -58,7 +106,6 @@ models.new_model = function(props) {
                 return Class.prototype.__collection.find();
             }
         },
-        
         
         // Don't mess with this stuff. It is used to setup the __collection variable.
         // __setup_collection gets called from install.js

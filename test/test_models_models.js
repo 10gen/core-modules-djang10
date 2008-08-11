@@ -73,6 +73,7 @@ assert(a.id === null);
 a.save();
 assert(a.id !== null);
 assert(a.id === a._id);
+a.save();
 
 var b = new Article();
 b.some_field = 20;
@@ -98,3 +99,61 @@ var a = new Article();
 assert(a.id === 10);
 a.save();
 assert(a.id === 10);
+
+// Test saving a field with a manually set db_column
+var Article = models.new_model({
+    my_field: new models.Field({'db_column': 'my_column'})
+});
+Article.__setup_collection('testapp', 'Article');
+
+db.testapp.Article.remove({});
+
+var a = new Article();
+a.my_field = 30;
+a.save();
+assert(a.my_field === 30);
+
+var b = Article.objects.all()[0];
+assert(b.my_field === 30);
+assert(b.id == a.id);
+
+// Test that we get an exception if db_column is the same as an existing property
+var Article = models.new_model({
+    my_column: 'this shouldnt work',
+    my_field: new models.Field({'db_column': 'my_column'})
+});
+Article.__setup_collection('testapp', 'Article');
+
+db.testapp.Article.remove({});
+
+var a = new Article();
+/*
+    TODO be more specific here: use assertThrows instead
+*/
+test.assertException(a, Article.save);
+
+// Enable these tests after getting __lookupSetter__ or mongo hook
+//
+//  var Article = models.new_model({
+//      my_field: new models.Field({'db_column': 'my_column'}),
+//      my_column: 'this shouldnt work'
+//  });
+//  Article.__setup_collection('testapp', 'Article');
+//  
+//  var a = new Article();
+//  /*
+//      TODO be more specific here: use assertThrows instead
+//  */
+//  test.assertException(a, Article.save);
+//  
+//  var Article = models.new_model({
+//      my_field: new models.Field({'db_column': 'my_column'}),
+//      my_column: new models.Field()
+//  });
+//  Article.__setup_collection('testapp', 'Article');
+//  
+//  var a = new Article();
+//  /*
+//      TODO be more specific here: use assertThrows instead
+//  */
+//  test.assertException(a, Article.save);
