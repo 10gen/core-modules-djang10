@@ -127,10 +127,7 @@ Article.__setup_collection('testapp', 'Article');
 db.testapp.Article.remove({});
 
 var a = new Article();
-/*
-    TODO be more specific here: use assertThrows instead
-*/
-test.assertException(a, Article.save);
+test.assertThrows("column name matches existing property name: my_column", a, Article.save);
 
 var Article = models.new_model({
     my_field: new models.Field({'db_column': 'my_column'}),
@@ -139,10 +136,7 @@ var Article = models.new_model({
 Article.__setup_collection('testapp', 'Article');
 
 var a = new Article();
-/*
-    TODO be more specific here: use assertThrows instead
-*/
-test.assertException(a, Article.save);
+test.assertThrows("column name matches existing property name: my_column", a, Article.save);
 
 var Article = models.new_model({
     my_field: new models.Field({'db_column': 'my_column'}),
@@ -151,7 +145,4 @@ var Article = models.new_model({
 Article.__setup_collection('testapp', 'Article');
 
 var a = new Article();
-/*
-    TODO be more specific here: use assertThrows instead
-*/
-test.assertException(a, Article.save);
+test.assertThrows("column name matches existing property name: my_column", a, Article.save);
