@@ -42,27 +42,7 @@ models.new_model = function(props) {
                         };
                     }) (key));
                 
-                // This is hacky...
-                // Create an additional setter for the name given by db_column.
-                // This way when an object gets pulled out of the db it will get
-                // set here instead of creating some unused property.
-                Class.prototype.__defineSetter__(props[key].column,
-                    (function(key) {
-                        return function(val) {
-                            this._meta._fields[key].save_form_data(this._meta._field_values, val);
-                        };
-                    }) (key));
-                
             } else {
-                // We have to do this because we define the setter above. This
-                // will be unnecessary once we switch to using a mongo hook
-                // instead of the hacky setter method.
-                // if (Class.prototype.__lookupSetter__(key)) {
-                    /*
-                        TODO Throw a more standard exception here
-                    */
-                   // throw "column name matches existing property name: " + field.column;
-                // }
                 this[key] = props[key];
             }
         }
@@ -83,6 +63,8 @@ models.new_model = function(props) {
                     }
                 }
             }
+            
+            to_save._postLoad_map = {};
             // Now save the meta stuff
             for (var key in this._meta._fields) {
                 var field = this._meta._fields[key];
@@ -96,6 +78,7 @@ models.new_model = function(props) {
                 }
                 
                 to_save[field.column] = this[field.attname];
+                to_save._postLoad_map[field.column] = field.attname;
             }
             this.__collection.save(to_save);
             this._id = to_save._id;
@@ -105,6 +88,15 @@ models.new_model = function(props) {
             all: function() {
                 return Class.prototype.__collection.find();
             }
+        },
+        
+        postLoad: function() {
+            for (var key in this._postLoad_map) {
+                var swap = this[key];
+                delete this[key];
+                this[this._postLoad_map[key]] = swap;
+            }
+            delete this._postLoad_map;
         },
         
         // Don't mess with this stuff. It is used to setup the __collection variable.

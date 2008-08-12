@@ -132,28 +132,26 @@ var a = new Article();
 */
 test.assertException(a, Article.save);
 
-// Enable these tests after getting __lookupSetter__ or mongo hook
-//
-//  var Article = models.new_model({
-//      my_field: new models.Field({'db_column': 'my_column'}),
-//      my_column: 'this shouldnt work'
-//  });
-//  Article.__setup_collection('testapp', 'Article');
-//  
-//  var a = new Article();
-//  /*
-//      TODO be more specific here: use assertThrows instead
-//  */
-//  test.assertException(a, Article.save);
-//  
-//  var Article = models.new_model({
-//      my_field: new models.Field({'db_column': 'my_column'}),
-//      my_column: new models.Field()
-//  });
-//  Article.__setup_collection('testapp', 'Article');
-//  
-//  var a = new Article();
-//  /*
-//      TODO be more specific here: use assertThrows instead
-//  */
-//  test.assertException(a, Article.save);
+var Article = models.new_model({
+    my_field: new models.Field({'db_column': 'my_column'}),
+    my_column: 'this shouldnt work'
+});
+Article.__setup_collection('testapp', 'Article');
+
+var a = new Article();
+/*
+    TODO be more specific here: use assertThrows instead
+*/
+test.assertException(a, Article.save);
+
+var Article = models.new_model({
+    my_field: new models.Field({'db_column': 'my_column'}),
+    my_column: new models.Field()
+});
+Article.__setup_collection('testapp', 'Article');
+
+var a = new Article();
+/*
+    TODO be more specific here: use assertThrows instead
+*/
+test.assertException(a, Article.save);
