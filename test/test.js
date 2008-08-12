@@ -49,10 +49,14 @@ var assertThrows = test.assertThrows = function(expected_exception, this_object,
     
     assert(exception);
 
-    if (typeof(exception) == "object") {
-        assert(exception.__proto__ == expected_exception.__proto__);
-        if(exception.message)
-            assert(exception.message.toString() == expected_exception.message.toString());
+    if (typeof exception === "object") {
+        if (typeof expected_exception !== "object") {
+            assert(exception.toString() === expected_exception.toString());
+        } else {
+            assert(exception.__proto__ == expected_exception.__proto__);
+            if(exception.message)
+                assert(exception.message.toString() == expected_exception.message.toString());
+        }
     }
     else {
         assert(exception === expected_exception);

@@ -71,10 +71,7 @@ models.new_model = function(props) {
                 
                 // Make sure there are no name conflicts
                 if (field.column in to_save) {
-                    /*
-                        TODO Throw a more standard exception here
-                    */
-                    throw "column name matches existing property name: " + field.column;
+                    throw new ModelError("column name matches existing property name: " + field.column);
                 }
                 
                 to_save[field.column] = this[field.attname];
@@ -193,6 +190,24 @@ Field.prototype = {
     value_from_object: function(obj) {
         return obj[this.attname];
     }
+};
+
+var ModelError = models.ModelError = function(name, message) {
+    if (message === null) {
+        message = name;
+        name = null;
+    }
+    this['name'] = name;
+    this['message'] = message;
+};
+ModelError.prototype.toString = function() {
+    if (!this.message) {
+        return "(UNKNOWN MODEL ERROR)";
+    }
+    if (!this['name']) {
+        return "(MODEL ERROR) " + this.message;
+    }
+    return "(MODEL ERROR) " + this['name'] + ": " + this['message'];
 };
 
 return models;

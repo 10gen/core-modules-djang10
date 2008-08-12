@@ -20,6 +20,17 @@ core.modules.djang10.models.models();
 
 var db = connect("test");
 
+//--------------- Test ModelError ----------------
+var j = new models.ModelError("Test error", "this test failed");
+assert(j.toString() === "(MODEL ERROR) Test error: this test failed");
+j = new models.ModelError("Unnamed error message");
+assert(j.toString() === "(MODEL ERROR) Unnamed error message");
+j = new models.ModelError();
+assert(j.toString() === "(UNKNOWN MODEL ERROR)");
+assert(j.toString() !== "some random string that has nothing to do with j");
+
+//-------------- Test Models ---------------
+
 var Article = models.new_model({
     some_non_field: 10,
     some_field: new models.Field({'default': 10})
@@ -127,7 +138,7 @@ Article.__setup_collection('testapp', 'Article');
 db.testapp.Article.remove({});
 
 var a = new Article();
-test.assertThrows("column name matches existing property name: my_column", a, Article.save);
+test.assertThrows("(MODEL ERROR) column name matches existing property name: my_column", a, Article.save);
 
 var Article = models.new_model({
     my_field: new models.Field({'db_column': 'my_column'}),
@@ -136,7 +147,7 @@ var Article = models.new_model({
 Article.__setup_collection('testapp', 'Article');
 
 var a = new Article();
-test.assertThrows("column name matches existing property name: my_column", a, Article.save);
+test.assertThrows("(MODEL ERROR) column name matches existing property name: my_column", a, Article.save);
 
 var Article = models.new_model({
     my_field: new models.Field({'db_column': 'my_column'}),
@@ -145,4 +156,4 @@ var Article = models.new_model({
 Article.__setup_collection('testapp', 'Article');
 
 var a = new Article();
-test.assertThrows("column name matches existing property name: my_column", a, Article.save);
+test.assertThrows("(MODEL ERROR) column name matches existing property name: my_column", a, Article.save);
