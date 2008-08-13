@@ -147,7 +147,7 @@ models.new_model = function(props) {
                 
                 var errors = f.validate_full(f.attname, this);
                 
-                if (errors) {
+                if (errors.length > 0) {
                     error_dict[f.name] = errors;
                 }
             }

@@ -206,3 +206,10 @@ Article.__setup_collection('testapp', 'Article');
 
 var a = new Article();
 assert(a.my_field === true);
+assert(Object.isEmpty(a.validate()));
+
+a.my_field = 'false';
+assert(Object.isEmpty(a.validate()));
+
+a.my_field = 20;
+assert(a.validate().my_field.toString() === "This value must be either true or false.");
