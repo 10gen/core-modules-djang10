@@ -164,15 +164,28 @@ test.assertThrows("(MODEL ERROR) column name matches existing property name: my_
 
 // Test setting a value from the constructor
 var Article = models.new_model({
+    my_non_field: 20,
     my_field: new models.Field()
 });
 Article.__setup_collection('testapp', 'Article');
 
 var a = new Article();
+assert(a.my_non_field === 20);
 assert(a.my_field === "");
 
 var a = new Article({my_field: 5});
+assert(a.my_non_field === 20);
 assert(a.my_field === 5);
+
+var a = new Article({my_non_field: 25})
+assert(a.my_non_field === 25);
+assert(a.my_field === "");
+
+var a = new Article({my_field: 5, my_non_field: 25})
+assert(a.my_non_field === 25);
+assert(a.my_field === 5);
+
+test.assertThrows("(MODEL ERROR) KeyError: Invalid argument: some_random_name", {}, Article, {some_random_name: 25});
 
 var Article = models.new_model({
     my_field: new models.Field({'default': 20})

@@ -29,6 +29,7 @@ models.new_model = function(props) {
     }    
     
     var Class = function(params) {
+        // Class level stuff. TODO: this should be moved to the prototype...
         // initialize _meta
         this._meta = {};
         this._meta._fields = {};
@@ -63,6 +64,7 @@ models.new_model = function(props) {
             }
         }
         
+        // Actual instance level stuff
         params = params || {};
 
         for (var key in this._meta._fields) {
@@ -71,11 +73,20 @@ models.new_model = function(props) {
             
             if (field['attname'] in params) {
                 value = params[field['attname']];
+                delete params[field['attname']];
             } else {
                 value = field.get_default();
             }
             
             this[field['attname']] = value;
+        }
+        
+        for (var key in params) {
+            if (key in this) {
+                this[key] = params[key];
+            } else {
+                throw new ModelError("KeyError", "Invalid argument: " + key);
+            }
         }
     };
 
