@@ -15,6 +15,7 @@
 */
 
 core.modules.djang10.validators();
+core.modules.djang10.util.object();
 
 models = {};
 
@@ -37,7 +38,7 @@ models.new_model = function(props) {
             // Meta is a special case - just merge the properties into _meta
             if (key === 'Meta') {
                 this._meta = this._meta.merge(props.Meta);
-            } else if (props[key] instanceof Field) { // fields are also special
+            } else if (Object.instanceOf(props[key], Field)) { // fields are also special
                 // set the field name
                 props[key].set_attributes_from_name(key);
                 this._meta._fields[key] = props[key];
@@ -258,7 +259,7 @@ Field.prototype = {
             if (this['default'] instanceof Function) {
                 return this['default']();
             }
-            return this['default'].toString();
+            return this['default'];
         }
         return "";
     },

@@ -184,3 +184,12 @@ assert(a.my_field === 20);
 
 var a = new Article({my_field: 5});
 assert(a.my_field === 5);
+
+// Test validating a BooleanField
+var Article = models.new_model({
+    my_field: new models.BooleanField({'default': true})
+});
+Article.__setup_collection('testapp', 'Article');
+
+var a = new Article();
+assert(a.my_field === true);

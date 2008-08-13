@@ -77,6 +77,10 @@ assert(f.value_from_object(obj) === 'mike');
 f.save_form_data(obj, 'mikey');
 assert(f.value_from_object(obj) === 'mikey');
 
+// Test callable defaults
+var f = new models.Field({'default': function() {return "hello";}});
+assert(f.get_default() === 'hello');
+
 // Test BooleanField
 var f = new models.BooleanField();
 assert(f.blank === true);
