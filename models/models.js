@@ -1,3 +1,21 @@
+/**
+*      Copyright (C) 2008 10gen Inc.
+*  
+*    Licensed under the Apache License, Version 2.0 (the "License");
+*    you may not use this file except in compliance with the License.
+*    You may obtain a copy of the License at
+*  
+*       http://www.apache.org/licenses/LICENSE-2.0
+*  
+*    Unless required by applicable law or agreed to in writing, software
+*    distributed under the License is distributed on an "AS IS" BASIS,
+*    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*    See the License for the specific language governing permissions and
+*    limitations under the License.
+*/
+
+core.modules.djang10.validators();
+
 models = {};
 
 models.new_model = function(props) {
@@ -92,11 +110,41 @@ models.new_model = function(props) {
             this.__collection.save(to_save);
             this._id = to_save._id;
         },
-        
-        objects: {
-            all: function() {
-                return Class.prototype.__collection.find();
+       
+        validate: function () {
+            var error_dict = {};
+            var invalid = {};
+            
+            for (var key in this._meta._fields) {
+                var f = this._meta._fields[key];
+                
+                try {
+                    this[f.attname] = f.to_javascript(this[f.attname]);
+                } catch (e if e instanceof validators.ValidationError) {
+                    error_dict[f.name] = e.messages;
+                    invalid[f.name] = true;
+                }
             }
+            
+            for (var key in this._meta._fields) {
+                var f = this._meta._fields[key];
+                
+                if (f.name in invalid) {
+                    continue;
+                }
+                
+                var errors = f.validate_full(f.attname, this);
+                
+                if (errors) {
+                    error_dict[f.name] = errors;
+                }
+            }
+            
+            return error_dict;
+        },
+        
+        objects: function() {
+            return Class.prototype.__collection;
         },
         
         postLoad: function() {
@@ -136,7 +184,6 @@ var NOT_PROVIDED = function() {};
 var Field = models.Field = function(params) {
     params = {
         'name': null,
-        'null': false,
         'blank': false,
         'db_column': null,
         'db_index': false,
@@ -152,7 +199,6 @@ var Field = models.Field = function(params) {
     }.merge(params || {});
     
     this['name'] = params['name'];
-    this['null'] = params['null'];
     this['blank'] = params['blank'];
     this['db_column'] = params['db_column'];
     this['db_index'] = params['db_index'];
@@ -174,6 +220,21 @@ Field.prototype = {
     to_javascript: function(value) {
         return value;
     },
+    
+    validate_full: function(field_data, all_data) {
+        if (!this.blank && !field_data) {
+            return ['This field is required.'];
+        }
+        try {
+            this.validate(field_data, all_data);
+        } catch (e if e instanceof validators.ValidationError) {
+            return e.messages;
+        }
+        return [];
+    },
+    
+    // Subclasses should throw validators.ValidationError on an error
+    validate: function() {},
     
     set_attributes_from_name: function(n) {
         this['name'] = n;
@@ -210,6 +271,28 @@ Field.prototype = {
         return obj[this.attname];
     }
 };
+
+var BooleanField = models.BooleanField = function(params) {
+    params = {
+        blank: true
+    }.merge(params || {});
+    
+    Field.apply(this, [params]);
+};
+
+BooleanField.prototype = {
+    __proto__: Field.prototype,
+    
+    to_javascript: function(value) {
+        if (value === true || value === 't' || value === 'true' || value === '1') {
+            return true;
+        }
+        if (value === false || value === 'f' || value === 'false' || value === '0') {
+            return false;
+        }
+        throw new validators.ValidationError("This value must be either true or false.");
+    }
+}
 
 var ModelError = models.ModelError = function(name, message) {
     if (message === null) {

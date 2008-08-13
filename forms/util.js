@@ -121,7 +121,6 @@ var getReCodeAndCallbackForDirective = function(directive, group_number) {
             return ["(\\d\\d?)", generateSecondFunc(group_number), 1];
         case "y":
             return ["(\\d\\d)", generateYearFunc(group_number, 2000), 1];
-        // TODO should we allow years like 320 or 980 here? what about 10001?
         case "Y":
             return ["(\\d\\d\\d\\d)", generateYearFunc(group_number), 1];
         case "%":

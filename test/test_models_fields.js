@@ -21,7 +21,6 @@ core.modules.djang10.models.models();
 // Make sure defaults are getting set up properly
 var f = new models.Field();
 assert(f['name'] === null);
-assert(f['null'] === false);
 assert(f['blank'] === false);
 assert(f['db_column'] === null);
 assert(f['db_index'] === false);
@@ -45,13 +44,12 @@ assert(f['column'] === 'mikes_new_field');
 assert(f['verbose_name'] === 'mikes new field');
 
 // Now make sure overriding defaults works properly
-var f = new models.Field({'name': 'my_field', 'null': true, 'blank': true,
+var f = new models.Field({'name': 'my_field', 'blank': true,
         'db_column': 'col', 'db_index': true, 'default': 'hello', 'editable': false,
         'help_text': 'help!', 'unique': true, 'unique_for_date': 'a',
         'unique_for_month': 'b', 'unique_for_year': 'c', 'validator_list': 'd',
         'verbose_name': 'My Field!'});
 assert(f['name'] === 'my_field');
-assert(f['null'] === true);
 assert(f['blank'] === true);
 assert(f['db_column'] === 'col');
 assert(f['db_index'] === true);
@@ -78,3 +76,22 @@ var obj = {'my_other_field': 'mike'};
 assert(f.value_from_object(obj) === 'mike');
 f.save_form_data(obj, 'mikey');
 assert(f.value_from_object(obj) === 'mikey');
+
+// Test BooleanField
+var f = new models.BooleanField();
+assert(f.blank === true);
+assert(f.to_javascript(true) === true);
+assert(f.to_javascript(false) === false);
+assert(f.to_javascript(1) === true);
+assert(f.to_javascript(0) === false);
+assert(f.to_javascript('true') === true);
+assert(f.to_javascript('false') === false);
+assert(f.to_javascript('t') === true);
+assert(f.to_javascript('f') === false);
+assert(f.to_javascript('1') === true);
+assert(f.to_javascript('0') === false);
+test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, null);
+test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, '2');
+test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, 'True');
+test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, 'trueaoeu');
+test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, 10);
