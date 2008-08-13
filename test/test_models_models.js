@@ -30,7 +30,6 @@ assert(j.toString() === "(UNKNOWN MODEL ERROR)");
 assert(j.toString() !== "some random string that has nothing to do with j");
 
 //-------------- Test Models ---------------
-
 var Article = models.new_model({
     some_non_field: 10,
     some_field: new models.Field({'default': 10})
@@ -127,6 +126,11 @@ assert(a.my_field === 30);
 var b = Article.objects.all()[0];
 assert(b.my_field === 30);
 assert(b.id == a.id);
+b.my_field = 20;
+b.save();
+
+assert(Article.objects.all().count() === 1);
+assert(Article.objects.all()[0].my_field === 20);
 
 // Test that we get an exception if db_column is the same as an existing property
 var Article = models.new_model({
@@ -157,3 +161,26 @@ Article.__setup_collection('testapp', 'Article');
 
 var a = new Article();
 test.assertThrows("(MODEL ERROR) column name matches existing property name: my_column", a, Article.save);
+
+// Test setting a value from the constructor
+var Article = models.new_model({
+    my_field: new models.Field()
+});
+Article.__setup_collection('testapp', 'Article');
+
+var a = new Article();
+assert(a.my_field === "");
+
+var a = new Article({my_field: 5});
+assert(a.my_field === 5);
+
+var Article = models.new_model({
+    my_field: new models.Field({'default': 20})
+});
+Article.__setup_collection('testapp', 'Article');
+
+var a = new Article();
+assert(a.my_field === 20);
+
+var a = new Article({my_field: 5});
+assert(a.my_field === 5);

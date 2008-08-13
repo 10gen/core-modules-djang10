@@ -9,7 +9,7 @@ models.new_model = function(props) {
         collection_name = props.Meta.db_table;
     }    
     
-    var Class = function() {
+    var Class = function(params) {
         // initialize _meta
         this._meta = {};
         this._meta._fields = {};
@@ -23,9 +23,6 @@ models.new_model = function(props) {
                 // set the field name
                 props[key].set_attributes_from_name(key);
                 this._meta._fields[key] = props[key];
-                
-                // default value
-                this._meta._fields[key].save_form_data(this._meta._field_values, props[key].get_default());
                 
                 //getter and setter
                 // we do a little bit of indirection here to deal with the closure properly
@@ -45,6 +42,21 @@ models.new_model = function(props) {
             } else {
                 this[key] = props[key];
             }
+        }
+        
+        params = params || {};
+
+        for (var key in this._meta._fields) {
+            var field = this._meta._fields[key];
+            var value = null;
+            
+            if (field['attname'] in params) {
+                value = params[field['attname']];
+            } else {
+                value = field.get_default();
+            }
+            
+            this[field['attname']] = value;
         }
     };
 
@@ -156,6 +168,13 @@ var Field = models.Field = function(params) {
 };
 
 Field.prototype = {
+    // This is poorly named. It is the equivalent of Django's to_python. What
+    // it does is convert the input value into the expected data type, raising
+    // a validation error if it cannot be converted.
+    to_javascript: function(value) {
+        return value;
+    },
+    
     set_attributes_from_name: function(n) {
         this['name'] = n;
         this.attname = this.get_attname();
@@ -200,6 +219,7 @@ var ModelError = models.ModelError = function(name, message) {
     this['name'] = name;
     this['message'] = message;
 };
+
 ModelError.prototype.toString = function() {
     if (!this.message) {
         return "(UNKNOWN MODEL ERROR)";
