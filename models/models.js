@@ -19,6 +19,20 @@ core.modules.djang10.util.object();
 
 models = {};
 
+// NOTE: I'm not exactly sure what the ideal behavior is for validation here.
+// In django validation works like this:
+//      the user makes an invalid model (no errors)
+//      model.validate() returns a dictionary of errors
+//      the user saves the model (no errors)
+//      the user retrieves the model (no errors)
+//      retrieved_model.validate() returns an EMPTY dictionary of errors
+//      the fields that were errors have been transformed to a different value that will fit in the db column
+// So there is really no automatic validation, just when you call validate()
+
+// The difference with us is that the db doesn't care what type of value you save in a "column".
+// So should we do the same sort of automatic conversion or not? Right now we don't.
+// You can save an invalid model and get back the exact same invalid model.
+// The only validation comes on a call to validate.
 models.new_model = function(props) {
     props = props || {};
     
@@ -155,10 +169,6 @@ models.new_model = function(props) {
             return error_dict;
         },
         
-        objects: function() {
-            return Class.prototype.__collection;
-        },
-        
         postLoad: function() {
             for (var key in this._postLoad_map) {
                 var swap = this[key];
@@ -187,6 +197,10 @@ models.new_model = function(props) {
             return this._id;
         });
     }
+    
+    Class.prototype.__defineGetter__("objects", function() {
+        return Class.prototype.__collection;
+    });
     
     return Class;
 }

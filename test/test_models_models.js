@@ -39,7 +39,7 @@ Article.__setup_collection('testapp', 'Article');
 
 db.testapp.Article.remove({});
 
-assert(Object.isEmpty(Article.objects().find()));
+assert(Object.isEmpty(Article.objects.find()));
 
 var a = new Article();
 assert(a.some_non_field === 10);
@@ -55,9 +55,9 @@ b.save();
 assert(b.some_non_field === 10);
 assert(b.some_field === 20);
 
-assert(Article.objects().find().count() === 2);
-assert(Article.objects().find()[0].some_field === 10);
-assert(Article.objects().find()[1].some_field === 20);
+assert(Article.objects.find().count() === 2);
+assert(Article.objects.find()[0].some_field === 10);
+assert(Article.objects.find()[1].some_field === 20);
 
 assert(Article.__collection.toString() === "{DBCollection:testapp.Article}");
 
@@ -74,7 +74,7 @@ Article.__setup_collection('testapp', 'Article');
 
 db.testapp.Custom.remove({});
 
-assert(Object.isEmpty(Article.objects().find()));
+assert(Object.isEmpty(Article.objects.find()));
 
 var a = new Article();
 assert(a.some_non_field === 10);
@@ -91,9 +91,9 @@ b.save();
 assert(b.some_non_field === 10);
 assert(b.some_field === 20);
 
-assert(Article.objects().find().count() === 2);
-assert(Article.objects().find()[0].some_field === 10);
-assert(Article.objects().find()[1].some_field === 20);
+assert(Article.objects.find().count() === 2);
+assert(Article.objects.find()[0].some_field === 10);
+assert(Article.objects.find()[1].some_field === 20);
 
 assert(Article.__collection.toString() === "{DBCollection:testapp.Custom}");
 
@@ -123,14 +123,14 @@ a.my_field = 30;
 a.save();
 assert(a.my_field === 30);
 
-var b = Article.objects().find()[0];
+var b = Article.objects.find()[0];
 assert(b.my_field === 30);
 assert(b.id == a.id);
 b.my_field = 20;
 b.save();
 
-assert(Article.objects().find().count() === 1);
-assert(Article.objects().find()[0].my_field === 20);
+assert(Article.objects.find().count() === 1);
+assert(Article.objects.find()[0].my_field === 20);
 
 // Test that we get an exception if db_column is the same as an existing property
 var Article = models.new_model({
@@ -207,9 +207,21 @@ Article.__setup_collection('testapp', 'Article');
 var a = new Article();
 assert(a.my_field === true);
 assert(Object.isEmpty(a.validate()));
+db.testapp.Article.remove({});
+a.save();
+assert(Article.objects.findOne().my_field === true);
+assert(Object.isEmpty(Article.objects.findOne().validate()));
 
 a.my_field = 'false';
 assert(Object.isEmpty(a.validate()));
+db.testapp.Article.remove({});
+a.save();
+assert(Article.objects.findOne().my_field === false);
+assert(Object.isEmpty(Article.objects.findOne().validate()));
 
 a.my_field = 20;
 assert(a.validate().my_field.toString() === "This value must be either true or false.");
+db.testapp.Article.remove({});
+a.save();
+assert(Article.objects.findOne().validate().my_field.toString() === "This value must be either true or false.");
+assert(Article.objects.findOne().my_field === 20);
