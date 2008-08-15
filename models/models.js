@@ -159,7 +159,7 @@ models.new_model = function(props) {
                     continue;
                 }
                 
-                var errors = f.validate_full(f.attname, this);
+                var errors = f.validate_full(this[f.attname], this);
                 
                 if (errors.length > 0) {
                     error_dict[f.name] = errors;
@@ -317,6 +317,29 @@ BooleanField.prototype = {
             return false;
         }
         throw new validators.ValidationError("This value must be either true or false.");
+    }
+}
+
+var CharField = models.CharField = function(params) {
+    if (!params || !params.maxlength) {
+        throw new ModelError('FieldError', 'CharField must have a maxlength parameter.');
+    }
+    this.maxlength = params.maxlength;
+    Field.apply(this, [params]);
+};
+
+CharField.prototype = {
+    __proto__: Field.prototype,
+    
+    to_javascript: function(value) {
+        if (value === null) {
+            value = "";
+        }
+        value = value.toString();
+        if (value.length > this.maxlength) {
+            throw new validators.ValidationError("This value must have length less than or equal to " + this.maxlength);
+        }
+        return value;
     }
 }
 

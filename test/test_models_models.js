@@ -225,3 +225,33 @@ db.testapp.Article.remove({});
 a.save();
 assert(Article.objects.findOne().validate().my_field.toString() === "This value must be either true or false.");
 assert(Article.objects.findOne().my_field === 20);
+
+// Some tests with a CharField
+var Article = models.new_model({
+    my_field: new models.CharField({'blank': false, 'maxlength': 10})
+});
+Article.__setup_collection('testapp', 'Article');
+
+var a = new Article();
+assert(a.my_field === "");
+assert(a.validate().my_field.toString() === "This field is required.");
+a.my_field = "hello";
+assert(a.my_field === "hello");
+assert(Object.isEmpty(a.validate()));
+db.testapp.Article.remove({});
+a.save();
+b = Article.objects.findOne();
+assert(b.my_field === "hello");
+assert(Object.isEmpty(b.validate()));
+
+a.my_field = "1234567890";
+assert(a.my_field === "1234567890");
+assert(Object.isEmpty(a.validate()));
+a.my_field = "1234567890a";
+assert(a.my_field === "1234567890a");
+assert(a.validate().my_field.toString() === "This value must have length less than or equal to 10");
+db.testapp.Article.remove({});
+a.save();
+b = Article.objects.findOne();
+assert(b.my_field === "1234567890a");
+assert(b.validate().my_field.toString() === "This value must have length less than or equal to 10");

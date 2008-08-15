@@ -99,3 +99,13 @@ test.assertThrows("This value must be either true or false.", f, models.BooleanF
 test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, 'True');
 test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, 'trueaoeu');
 test.assertThrows("This value must be either true or false.", f, models.BooleanField.to_javascript, 10);
+
+// Test CharField
+test.assertThrows("(MODEL ERROR) FieldError: CharField must have a maxlength parameter.", {}, models.CharField);
+var f = new models.CharField({maxlength: 10});
+assert(f.to_javascript("hello") === "hello");
+assert(f.to_javascript(null) === "");
+assert(f.to_javascript("") === "");
+assert(f.to_javascript(25) === "25");
+test.assertThrows("This value must have length less than or equal to 10", f, models.CharField.to_javascript, "1234567890a");
+assert(f.to_javascript("1234567890") === "1234567890");
