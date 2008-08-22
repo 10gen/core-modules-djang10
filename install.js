@@ -74,7 +74,10 @@ var prepModelForApp = function( appDir , appScope ) {
             continue;
         log( "added class " + i + " to scope.  Coll is : " + db[appDir.getName()][i] + " : " + tojson(db[appDir.getName()][i]));;
         var obj = scope.get(i);
-        obj.__setup_collection(appDir.getName(), i);
+        // Do this only if it is a Djang10 model.
+        if (obj.__setup_collection) {
+            obj.__setup_collection(appDir.getName(), i);
+        }
         appScope.set(i, obj);
     }
 };
