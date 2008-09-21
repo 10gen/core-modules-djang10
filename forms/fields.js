@@ -258,7 +258,7 @@ DecimalField.prototype = {
         'invalid': 'Enter a number.',
         'max_value': 'Ensure this value is less than or equal to %s.',
         'min_value': 'Ensure this value is greater than or equal to %s.',
-        'max_digits': 'Ensure that there are no more than %s digits in total.',
+        'max_digits': 'Ensure that there are no more than %d digits in total.',
         'max_decimal_places': 'Ensure that there are no more than %s decimal places.',
         'max_whole_digits': 'Ensure that there are no more than %s digits before the decimal point.'
     },
