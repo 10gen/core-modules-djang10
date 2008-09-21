@@ -55,7 +55,7 @@ var assertThrows = test.assertThrows = function(expected_exception, this_object,
         } else {
             assert(exception.__proto__ == expected_exception.__proto__);
             if(exception.message)
-                assert(exception.message.toString() == expected_exception.message.toString());
+                assert.eq(exception.message.toString() , expected_exception.message.toString());
         }
     }
     else {
