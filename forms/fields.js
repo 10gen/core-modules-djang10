@@ -260,7 +260,7 @@ DecimalField.prototype = {
         'min_value': 'Ensure this value is greater than or equal to %s.',
         'max_digits': 'Ensure that there are no more than %d digits in total.',
         'max_decimal_places': 'Ensure that there are no more than %s decimal places.',
-        'max_whole_digits': 'Ensure that there are no more than %s digits before the decimal point.'
+        'max_whole_digits': 'Ensure that there are no more than %d digits before the decimal point.'
     },
 
     clean: function(value) {
