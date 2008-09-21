@@ -1,12 +1,12 @@
 /**
 *      Copyright (C) 2008 10gen Inc.
-*  
+*
 *    Licensed under the Apache License, Version 2.0 (the "License");
 *    you may not use this file except in compliance with the License.
 *    You may obtain a copy of the License at
-*  
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*  
+*
 *    Unless required by applicable law or agreed to in writing, software
 *    distributed under the License is distributed on an "AS IS" BASIS,
 *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,24 +35,24 @@ var Field = fields.Field = function(params) {
     this.label = params.label;
     this.initial = params.initial;
     this.help_text = params.help_text;
-    
+
     var widget = params.widget || this.widget;
-    
+
     //instantiate the widget if it needs it
     if (widget instanceof Function) {
         widget = new widget();
     }
-    
+
     //get field specific html attributes to apply for the current widget
     widget.attrs = widget.attrs.merge(this.widget_attrs(widget));
-    
+
     this.widget = widget;
-    
+
     //get error messages
     this.error_messages = {};
 
     //from base classes
-    var prototypeStack = [];                
+    var prototypeStack = [];
     for(var prototype = this.__proto__; prototype != null; prototype = prototype.__proto__)
         prototypeStack.push(prototype);
     while(prototypeStack.length > 0)
@@ -69,29 +69,29 @@ Field.prototype = {
         required: "This field is required.",
         invalid: "Enter a valid value."
     },
-    
+
     widget_attrs: function(widget) {
         return {};
     },
-    
+
     clean: function(value) {
-        if(this.required && (value == null || (typeof(value) == 'string' && value == ''))) 
+        if(this.required && (value == null || (typeof(value) == 'string' && value == '')))
             throw new util.ValidationError(this.error_messages["required"]);
-        
+
         return value;
     }
 };
 
 var CharField = fields.CharField = function(params) {
     params = {
-        max_length: null, 
+        max_length: null,
         min_length: null
 
     }.merge(params || {});
-    
+
     this.max_length = params.max_length;
     this.min_length = params.min_length;
-    
+
     Field.call(this, params);
 };
 
@@ -102,34 +102,34 @@ CharField.prototype = {
         'max_length': 'Ensure this value has at most %(max)d characters (it has %(length)d).',
         'min_length': 'Ensure this value has at least %(min)d characters (it has %(length)d).'
     },
-    
+
     clean: function(value) {
         Field.prototype.clean.call(this, value);
-        
+
         if (value == null || (typeof(value) == 'string' && value == ''))
             return '';
-        
+
         value = value.toString();
         var value_len = value.length;
         if(this.max_length != null && value_len > this.max_length)
             throw new util.ValidationError(
-                util.simplePythonFormat(this.error_messages["max_length"], 
+                util.simplePythonFormat(this.error_messages["max_length"],
                     {'max': this.max_length, 'length': value_len}
                 )
             );
         if(this.min_length != null && value_len < this.min_length && value != '')
             throw new util.ValidationError(
-                util.simplePythonFormat(this.error_messages["min_length"], 
+                util.simplePythonFormat(this.error_messages["min_length"],
                     {'min': this.min_length, 'length': value_len}
                 )
             );
-        
+
         return value;
     },
-    
-    widget_attrs: function(widget) {        
+
+    widget_attrs: function(widget) {
         var attrs = {};
-        
+
         if(this.max_length != null) {
             if(widget._use_max_length_attr) {
                 attrs["maxlength"] = this.max_length;
@@ -144,45 +144,45 @@ var IntegerField = fields.IntegerField = function(params) {
         max_value: null,
         min_value: null
     }.merge(params || {});
-    
+
     this.max_value = params.max_value;
     this.min_value = params.min_value;
-    
+
     Field.call(this, params);
 };
 
 IntegerField.prototype = {
     __proto__: Field.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a whole number.',
         'max_value': 'Ensure this value is less than or equal to %s.',
         'min_value': 'Ensure this value is greater than or equal to %s.'
     },
-    
+
     clean: function(value) {
         Field.prototype.clean.call(this, value);
-        
+
         if (value == null || (typeof(value) == 'string' && value == ''))
             return null;
-        
+
         // convert to string and trim
         value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
-        
+
         if (/^-?\d+$/.test(value)) {
             value = Number(value);
         }
         else {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
-        
+
         if (this.max_value != null && value > this.max_value) {
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_value'], this.max_value));
         }
         if (this.min_value != null && value < this.min_value) {
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages['min_value'], this.min_value));
         }
-        
+
         return value;
     }
 };
@@ -192,45 +192,45 @@ var FloatField = fields.FloatField = function(params) {
         max_value: null,
         min_value: null
     }.merge(params || {});
-    
+
     this.max_value = params.max_value;
     this.min_value = params.min_value;
-    
+
     Field.call(this, params);
 };
 
 FloatField.prototype = {
     __proto__: Field.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a number.',
         'max_value': 'Ensure this value is less than or equal to %s.',
         'min_value': 'Ensure this value is greater than or equal to %s.'
     },
-    
+
     clean: function(value) {
         Field.prototype.clean.call(this, value);
-        
+
         if (value == null || (typeof(value) == 'string' && value == ''))
             return null;
-        
+
         // convert to string and trim
         value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
-        
+
         if (/(^-?\d+\.?$)|(^-?\d*\.\d+$)/.test(value)) {
             value = Number(value);
         }
         else {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
-        
+
         if (this.max_value != null && value > this.max_value) {
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_value'], this.max_value));
         }
         if (this.min_value != null && value < this.min_value) {
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages['min_value'], this.min_value));
         }
-        
+
         return value;
     }
 };
@@ -242,18 +242,18 @@ var DecimalField = fields.DecimalField = function(params) {
         max_digits: null,
         decimal_places: null
     }.merge(params || {});
-    
+
     this.max_value = params.max_value;
     this.min_value = params.min_value;
     this.max_digits = params.max_digits;
     this.decimal_places = params.decimal_places;
-    
+
     Field.call(this, params);
 };
 
 DecimalField.prototype = {
     __proto__: Field.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a number.',
         'max_value': 'Ensure this value is less than or equal to %s.',
@@ -262,13 +262,13 @@ DecimalField.prototype = {
         'max_decimal_places': 'Ensure that there are no more than %s decimal places.',
         'max_whole_digits': 'Ensure that there are no more than %s digits before the decimal point.'
     },
-    
+
     clean: function(value) {
         Field.prototype.clean.call(this, value);
-        
+
         if (value == null || (typeof(value) == 'string' && value == ''))
             return null;
-        
+
         // convert to string and trim
         value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
 
@@ -279,13 +279,13 @@ DecimalField.prototype = {
             }
             var decimals = (pieces.length == 2) ? pieces[1].length : 0;
             var digits = pieces[0].length;
-            
+
             value = Number(value);
         }
         else {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
-        
+
         if (this.max_value != null && value > this.max_value) {
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages['max_value'], this.max_value));
         }
@@ -300,12 +300,12 @@ DecimalField.prototype = {
         }
         if (this.max_digits != null && this.decimal_places != null && digits > (this.max_digits - this.decimal_places)) {
             throw new util.ValidationError(
-                util.simplePythonFormat(this.error_messages['max_whole_digits'], 
+                util.simplePythonFormat(this.error_messages['max_whole_digits'],
                     this.max_digits - this.decimal_places
                 )
             );
         }
-        
+
         return value;
     }
 };
@@ -314,7 +314,7 @@ var DateField = fields.DateField = function(params) {
     params = {
         input_formats: null
     }.merge(params || {});
-    
+
     Field.call(this, params);
     this.input_formats = params.input_formats || DateField.DEFAULT_DATE_INPUT_FORMATS;
 };
@@ -329,25 +329,25 @@ DateField.DEFAULT_DATE_INPUT_FORMATS = [
 
 DateField.prototype = {
     __proto__: Field.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a valid date.'
     },
-    
+
     clean: function(value) {
         Field.prototype.clean.call(this, value);
-        
+
         if (value == null || (typeof(value) == 'string' && value == ''))
             return null;
-        
+
         if (typeof(value) == 'object' && value.constructor == Date) {
             return new Date(value.getFullYear(), value.getMonth(), value.getDate());
         }
-        
+
         if (typeof(value) == 'string') {
             for (var i in this.input_formats) {
                 var format = this.input_formats[i];
-                
+
                 try {
                     var d = util.strptime(value, format);
                     return new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -365,7 +365,7 @@ var TimeField = fields.TimeField = function(params) {
     params = {
         input_formats: null
     }.merge(params || {});
-    
+
     Field.call(this, params);
     this.input_formats = params.input_formats || TimeField.DEFAULT_TIME_INPUT_FORMATS;
 };
@@ -377,25 +377,25 @@ TimeField.DEFAULT_TIME_INPUT_FORMATS = [
 
 TimeField.prototype = {
     __proto__: Field.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a valid time.'
     },
-    
+
     clean: function(value) {
         Field.prototype.clean.call(this, value);
-        
+
         if (value == null || (typeof(value) == 'string' && value == ''))
             return null;
-        
+
         if (typeof(value) === 'object' && value.constructor == Date) {
             return new Date(0, 0, 0, value.getHours(), value.getMinutes(), value.getSeconds());
         }
-        
+
         if (typeof(value) === 'string') {
             for (var i  = 0; i < this.input_formats.length; i++) {
                 var format = this.input_formats[i];
-                
+
                 try {
                     var d = util.strptime(value, format);
                     return new Date(0, 0, 0, d.getHours(), d.getMinutes(), d.getSeconds());
@@ -413,7 +413,7 @@ var DateTimeField = fields.DateTimeField = function(params) {
     params = {
         input_formats: null
     }.merge(params || {});
-    
+
     Field.call(this, params);
     this.input_formats = params.input_formats || DateTimeField.DEFAULT_DATETIME_INPUT_FORMATS;
 };
@@ -432,23 +432,23 @@ DateTimeField.DEFAULT_DATETIME_INPUT_FORMATS = [
 
 DateTimeField.prototype = {
     __proto__: Field.prototype,
-    
+
     widget: widgets.DateTimeInput,
-    
+
     default_error_messages: {
         'invalid': 'Enter a valid date/time.'
     },
-    
+
     clean: function(value) {
         Field.prototype.clean.call(this, value);
-        
+
         if (value === null || (typeof(value) === 'string' && value === ''))
             return null;
-        
+
         if (typeof(value) === 'object' && value.constructor === Date) {
             return value;
         }
-        
+
         if (typeof(value) === 'object' && value.constructor === Array) {
             // ie: input comes from a SplitDateTimeWidget.
             if (value.length != 2) {
@@ -457,11 +457,11 @@ DateTimeField.prototype = {
             // just join the date and time...
             value = value[0] + " " + value[1];
         }
-        
+
         if (typeof(value) === 'string') {
             for (var i = 0; i < this.input_formats.length; i++) {
                 var format = this.input_formats[i];
-            
+
                 try {
                     return util.strptime(value, format);
                 }
@@ -479,12 +479,12 @@ var RegexField = fields.RegexField = function(params) {
         regex: '',
         error_messages: {}
     }.merge(params || {});
-    
+
     // error_message is just copied to e_m['invalid'] for backwards compatibility
     if (params.error_message) {
         params.error_messages['invalid'] = params.error_message;
     }
-    
+
     CharField.call(this, params);
     if (typeof(params.regex) === 'string') {
         this.regex = RegExp(params.regex);
@@ -496,17 +496,17 @@ var RegexField = fields.RegexField = function(params) {
 
 RegexField.prototype = {
     __proto__: CharField.prototype,
-    
+
     clean: function(value) {
         CharField.prototype.clean.call(this, value);
-        
+
         if (value === null || value === "") {
             return '';
         }
         if (!this.regex.test(value)) {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
-        
+
         return value;
     }
 };
@@ -520,7 +520,7 @@ var EmailField = fields.EmailField = function(params) {
 
 EmailField.prototype = {
     __proto__: RegexField.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a valid e-mail address.'
     }
@@ -532,34 +532,34 @@ var FileField = fields.FileField = function(params) {
 
 FileField.prototype = {
     __proto__: Field.prototype,
-    
+
     widget: widgets.FileInput,
-    
+
     default_error_messages: {
         'invalid': 'No file was submitted. Check the encoding type on the form.',
         'missing': 'No file was submitted.',
         'empty': 'The submitted file is empty.'
     },
-    
+
     clean: function(data, initial) {
         initial = initial || null;
-        
+
         Field.prototype.clean.call(this, initial || data);
-        
+
         if (!this.required && (data === null || data === '')) {
             return null;
         }
         if (!data && initial) {
             return initial;
         }
-        
+
         if (!data.filename) {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
         if (!data.length) {
             throw new util.ValidationError(this.error_messages['empty']);
         }
-        
+
         return data;
     }
 };
@@ -572,20 +572,20 @@ var URLField = fields.URLField = function(params) {
         verify_exists: false,
     }.merge(params || {});
     //               protocol         domain          tld   or localhost or ip                               port     the rest...
-    params.regex = /^https?:\/\/(?:(?:[A-Z0-9.\-]+\.)+[A-Z]{2,6}|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|\/\S+)$/i;    
+    params.regex = /^https?:\/\/(?:(?:[A-Z0-9.\-]+\.)+[A-Z]{2,6}|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:\/?|\/\S+)$/i;
     RegexField.call(this, params);
-    
+
     this.verify_exists = params.verify_exists;
 };
 
 URLField.prototype = {
     __proto__: RegexField.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a valid URL.',
         'invalid_link': 'This URL appears to be a broken link.'
     },
-    
+
     clean: function(value) {
         if (value && value.indexOf('://') === -1) {
             value = 'http://' + value;
@@ -616,18 +616,18 @@ var BooleanField = fields.BooleanField = function(params) {
 
 BooleanField.prototype = {
     __proto__: Field.prototype,
-    
+
     widget: widgets.CheckboxInput,
-    
+
     clean: function(value) {
         if (value === 'false') {
             value = false;
         } else {
             value = util.bool(value);
         }
-        
+
         Field.prototype.clean.apply(this, [value]);
-        
+
         if (!value && this.required) {
             throw new util.ValidationError(this.error_messages['required']);
         }
@@ -644,24 +644,24 @@ var ChoiceField = fields.ChoiceField = function(params) {
         initial: null,
         help_text: null
     }.merge(params || {});
-    
+
     Field.apply(this, [params]);
-    
+
     this.choices = params.choices;
 };
 
 ChoiceField.prototype = {
     __proto__: Field.prototype,
-    
+
     widget: widgets.Select,
-    
+
     default_error_messages: {
         'invalid_choice': 'Select a valid choice. %(value)s is not one of the available choices.'
     },
-    
+
     clean: function(value) {
         value = Field.prototype.clean.apply(this, [value]);
-        
+
         if (value === null) {
             value = '';
         }
@@ -669,18 +669,18 @@ ChoiceField.prototype = {
         if (value === '') {
             return value;
         }
-        
+
         if (!this.valid_value(value)) {
             throw new util.ValidationError(util.simplePythonFormat(this.error_messages['invalid_choice'], {'value': value}));
         }
-        
+
         return value
     },
-    
+
     valid_value: function(value) {
         for (var k in this.choices) {
             var v = this.choices[k];
-            
+
             if (typeof v === 'object') {
                 // This is an optgroup
                 for (var k2 in v) {
@@ -688,8 +688,8 @@ ChoiceField.prototype = {
                         return true;
                     }
                 }
-            } 
-            
+            }
+
             if (value === k.toString()) {
                 return true;
             }
@@ -710,9 +710,9 @@ var NullBooleanField = fields.NullBooleanField = function(params) {
 
 NullBooleanField.prototype = {
     __proto__: BooleanField.prototype,
-    
+
     widget: widgets.NullBooleanSelect,
-    
+
     clean: function(value) {
         if (value === true) {
             return true;
@@ -730,14 +730,14 @@ var MultipleChoiceField = fields.MultipleChoiceField = function(params) {
 
 MultipleChoiceField.prototype = {
     __proto__: ChoiceField.prototype,
-    
+
     hidden_widget: widgets.MultipleHiddenInput,
     widget: widgets.SelectMultiple,
     default_error_messages: {
         'invalid_choice': 'Select a valid choice. %(value)s is not one of the available choices.',
         'invalid_list': 'Enter a list of values.'
     },
-    
+
     clean: function(value) {
         if (this.required && (!value || (typeof value === 'object' && Object.isEmpty(value)))) {
             throw new util.ValidationError(this.error_messages['required']);
@@ -763,26 +763,26 @@ var ComboField = fields.ComboField = function(params) {
     params = {
         fields: []
     }.merge(params || {});
-    
+
     Field.apply(this, [params]);
-    
+
     for (var i = 0; i < params.fields.length; i++) {
         params.fields[i].required = false;
     }
-    
+
     this.fields = params.fields;
 };
 
 ComboField.prototype = {
     __proto__: Field.prototype,
-    
+
     clean: function(value) {
         Field.clean.apply(this, [value]);
-        
+
         for (var i = 0; i < this.fields.length; i++) {
             value = this.fields[i].clean(value);
         }
-        
+
         return value;
     }
 }
@@ -797,24 +797,24 @@ var FilePathField = fields.FilePathField = function(params) {
         initial: null,
         help_text: null
     }.merge(params || {});
-    
+
     this.path = params.path;
     this.match = params.match;
     this.recursive = params.recursive;
-    
+
     ChoiceField.apply(this, [params]);
-    
+
     this.choices = {};
-    
+
     if (this.match !== null) {
         this.match_re = RegExp(this.match);
     }
-    
+
     var thisFile = openFile(params.path);
     if (thisFile.exists() && thisFile.isDirectory()) {
         var contents = [];
         contents = thisFile.listFiles();
-        
+
         if (this.recursive) {
             addFiles(contents, this.choices, this.match_re, params.path);
         } else {
@@ -848,27 +848,27 @@ MultiValueField = fields.MultiValueField = function(params) {
     params = {
         fields: []
     }.merge(params || {});
-    
+
     Field.apply(this, [params]);
-    
+
     for (var i = 0; i < params.fields.length; i++) {
         params.fields[i].required = false;
     }
-    
+
     this.fields = params.fields;
 };
 
 MultiValueField.prototype = {
     __proto__: Field.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a list of values.'
     },
-    
+
     clean: function(value) {
         var clean_data = [];
         var errors = new util.ErrorList();
-        
+
         if (!value || (typeof value === 'object' && Object.isEmpty(value))) {
             if (this.required) {
                 throw new util.ValidationError(this.error_messages['required']);
@@ -878,7 +878,7 @@ MultiValueField.prototype = {
         if (typeof value !== 'object') {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
-        
+
         var empty = true;
         for (var i in value) {
             if (value[i] !== null && value[i] !== '') {
@@ -891,12 +891,12 @@ MultiValueField.prototype = {
             }
             return this.compress([]);
         }
-        
+
         for (var i in this.fields) {
             var field = this.fields[i];
-            
+
             var field_value = value[i];
-            
+
             if (this.required && (field_value === null || field_value === '')) {
                 throw new util.ValidationError(this.error_messages['required']);
             }
@@ -911,7 +911,7 @@ MultiValueField.prototype = {
         }
         return this.compress(clean_data);
     },
-    
+
     compress: function(data_list) {
         throw new util.NotImplementedError('Subclasses must implement this method.');
     }
@@ -926,20 +926,20 @@ var SplitDateTimeField = fields.SplitDateTimeField = function(params) {
         new DateField({error_messages: {'invalid': errors['invalid_date']}}),
         new TimeField({error_messages: {'invalid': errors['invalid_time']}})
     ];
-    
+
     MultiValueField.apply(this, [params.merge({fields: fields})]);
 };
 
 SplitDateTimeField.prototype = {
     __proto__: MultiValueField.prototype,
-    
+
     widget: widgets.SplitDateTimeWidget,
-    
+
     default_error_messages: {
         'invalid_date': 'Enter a valid date.',
         'invalid_time': 'Enter a valid time.'
     },
-    
+
     compress: function(data_list) {
         if (data_list && !Object.isEmpty(data_list)) {
             if (data_list[0] === null || data_list[0] === '') {
@@ -948,8 +948,8 @@ SplitDateTimeField.prototype = {
             if (data_list[1] === null || data_list[1] === '') {
                 throw new util.ValidationError(this.error_messages['invalid_time']);
             }
-            return new Date(data_list[0].getFullYear(), data_list[0].getMonth(), 
-                data_list[0].getDate(), data_list[1].getHours(), 
+            return new Date(data_list[0].getFullYear(), data_list[0].getMonth(),
+                data_list[0].getDate(), data_list[1].getHours(),
                 data_list[1].getMinutes(), data_list[1].getSeconds());
         }
         return null;
@@ -960,13 +960,13 @@ var IPAddressField = fields.IPAddressField = function(params) {
     params = (params || {}).merge({
         regex: /^(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}$/
     });
-    
+
     RegexField.apply(this, [params]);
 };
 
 IPAddressField.prototype = {
     __proto__: RegexField.prototype,
-    
+
     default_error_messages: {
         'invalid': 'Enter a valid IPv4 address.'
     }
