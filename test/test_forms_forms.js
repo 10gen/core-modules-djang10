@@ -1,12 +1,12 @@
 /**
 *      Copyright (C) 2008 10gen Inc.
-*  
+*
 *    Licensed under the Apache License, Version 2.0 (the "License");
 *    you may not use this file except in compliance with the License.
 *    You may obtain a copy of the License at
-*  
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*  
+*
 *    Unless required by applicable law or agreed to in writing, software
 *    distributed under the License is distributed on an "AS IS" BASIS,
 *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,7 @@ core.modules.djang10.forms.util();
 var Person = function(params) {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
-    
+
     forms.Form.call(this, params);
 };
 
@@ -87,7 +87,7 @@ var OptionalPersonForm = function() {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
     this.nick_name = new fields.CharField({required: false});
-    
+
     forms.Form.apply(this, arguments);
 };
 
@@ -114,7 +114,7 @@ assert(p.as_ul() == '<li>First name: <input type="text" name="first_name" /></li
 var PersonNew = function() {
     this.first_name = new fields.CharField({widget: new widgets.TextInput({'id': 'first_name_id'})});
     this.last_name = new fields.CharField();
-    
+
     forms.Form.apply(this, arguments);
 };
 
@@ -129,7 +129,7 @@ assert(p.as_ul() == '<li><label for="first_name_id">First name:</label> <input i
 var SignupForm = function() {
     this.email = new fields.EmailField();
     this.get_spam = new fields.BooleanField();
-    
+
     forms.Form.apply(this, arguments)
 };
 
@@ -146,7 +146,7 @@ assert(f.get_bound_field('get_spam').toString() === '<input type="checkbox" name
 var ContactForm = function() {
     this.subject = new fields.CharField();
     this.message = new fields.CharField({widget: widgets.Textarea});
-    
+
     forms.Form.apply(this, arguments);
 };
 
@@ -162,7 +162,7 @@ assert(f.get_bound_field('message').as_hidden() === '<input type="hidden" name="
 var ContactForm = function() {
     this.subject = new fields.CharField();
     this.message = new fields.CharField({widget: new widgets.Textarea({'rows': 80, 'cols': 20})});
-    
+
     forms.Form.apply(this, arguments);
 };
 
@@ -271,7 +271,7 @@ assert(f.as_p() === '<p><label for="id_name">Name:</label> <input type="text" na
 var SongForm = function() {
     this.name = new fields.CharField();
     this.composers = new fields.MultipleChoiceField();
-    
+
     forms.Form.apply(this, arguments);
 };
 SongForm.prototype.__proto__ = forms.Form.prototype;
@@ -282,7 +282,7 @@ assert(f.get_bound_field('composers').toString() === '<select multiple="multiple
 var SongForm = function() {
     this.name = new fields.CharField();
     this.composers = new fields.MultipleChoiceField({choices: {'J': 'John Lennon', 'P': 'Paul McCartney'}});
-    
+
     forms.Form.apply(this, arguments);
 };
 SongForm.prototype.__proto__ = forms.Form.prototype;
@@ -302,7 +302,7 @@ assert(f.get_bound_field('composers').as_hidden() === '<input type="hidden" name
 var SongForm = function() {
     this.name = new fields.CharField();
     this.composers = new fields.MultipleChoiceField({choices: {'J': 'John Lennon', 'P': 'Paul McCartney'}, widget: widgets.CheckboxSelectMultiple});
-    
+
     forms.Form.apply(this, arguments);
 };
 SongForm.prototype.__proto__ = forms.Form.prototype;
@@ -325,7 +325,7 @@ assert(Object.isEmpty(f.errors.dict));
 var SongFormHidden = function() {
     this.name = new fields.CharField();
     this.composers = new fields.MultipleChoiceField({choices: {'J': 'John Lennon', 'P': 'Paul McCartney'}, widget: widgets.MultipleHiddenInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 SongFormHidden.prototype.__proto__ = forms.Form.prototype;
@@ -351,12 +351,12 @@ assert(f.cleaned_data['name'] === 'Yesterday');
 
 var EscapingForm = function() {
     this.special_name = new fields.CharField();
-    
+
     var that = this;
     this.clean_special_name = function() {
         throw new util.ValidationError("Something's wrong with '" + that.cleaned_data["special_name"] + "'")
     }
-    
+
     forms.Form.apply(this, arguments);
 };
 EscapingForm.prototype = {
@@ -390,7 +390,7 @@ var UserRegistration = function() {
         }
         return that.cleaned_data['password2'];
     };
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -431,7 +431,7 @@ var UserRegistration = function() {
         }
         return that.cleaned_data;
     };
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -461,9 +461,9 @@ assert(f.cleaned_data.password2 === 'foo');
 var Person = function() {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
-    
+
     forms.Form.apply(this, arguments);
-    
+
     this.fields['birthday'] = new fields.DateField();
 };
 Person.prototype.__proto__ = forms.Form.prototype;
@@ -473,7 +473,7 @@ assert(p.toString() === '<tr><th>First name:</th><td><input type="text" name="fi
 
 var MyForm = function(params, field_list) {
     forms.Form.apply(this, [params.merge({auto_id: false})]);
-    
+
     for (var k in field_list) {
         this.fields[k] = field_list[k];
     }
@@ -490,7 +490,7 @@ var MyForm = function(params, field_list) {
     this.default_field_1 = new fields.CharField();
     this.default_field_2 = new fields.CharField();
     forms.Form.apply(this, [params.merge({auto_id: false})]);
-    
+
     for (var k in field_list) {
         this.fields[k] = field_list[k];
     }
@@ -507,9 +507,9 @@ assert(myform.toString() === '<tr><th>Default field 1:</th><td><input type="text
 var Person = function(names_required, params) {
     this.first_name = new fields.CharField({required: false});
     this.last_name = new fields.CharField({required: false});
-    
+
     forms.Form.apply(this, [params]);
-    
+
     if (names_required) {
         this.fields['first_name'].required = true;
         this.fields['first_name'].widget.attrs['class'] = 'required';
@@ -540,9 +540,9 @@ assert(Object.isEmpty(f.get_bound_field('last_name').field.widget.attrs));
 var Person = function(name_max_length, params) {
     this.first_name = new fields.CharField({max_length: 30});
     this.last_name = new fields.CharField({max_length: 30});
-    
+
     forms.Form.apply(this, [params]);
-    
+
     if (name_max_length) {
         this.fields['first_name'].max_length = name_max_length;
         this.fields['last_name'].max_length = name_max_length;
@@ -571,7 +571,7 @@ var Person = function() {
     this.last_name = new fields.CharField();
     this.hidden_text = new fields.CharField({widget: widgets.HiddenInput});
     this.birthday = new fields.DateField();
-    
+
     forms.Form.apply(this, arguments);
 };
 Person.prototype.__proto__ = forms.Form.prototype;
@@ -600,7 +600,7 @@ assert(p.as_p() === '<ul class="errorlist"><li>(Hidden field hidden_text) This f
 var TestForm = function() {
     this.foo = new fields.CharField({widget: widgets.HiddenInput});
     this.bar = new fields.CharField({widget: widgets.HiddenInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 TestForm.prototype.__proto__ = forms.Form.prototype;
@@ -617,7 +617,7 @@ var TestForm = function() {
     this.field3 = new fields.CharField();
     this.field4 = new fields.CharField();
     this.field5 = new fields.CharField();
-    this.field6 = new fields.CharField();                  
+    this.field6 = new fields.CharField();
     this.field7 = new fields.CharField();
     this.field8 = new fields.CharField();
     this.field9 = new fields.CharField();
@@ -626,7 +626,7 @@ var TestForm = function() {
     this.field12 = new fields.CharField();
     this.field13 = new fields.CharField();
     this.field14 = new fields.CharField();
-    
+
     forms.Form.apply(this, arguments);
 };
 TestForm.prototype.__proto__ = forms.Form.prototype;
@@ -643,7 +643,7 @@ var UserRegistration = function() {
     this.password = new fields.CharField({max_length: 10, widget: widgets.PasswordInput});
     this.realname = new fields.CharField({max_length: 10, widget: widgets.TextInput});
     this.address = new fields.CharField();
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -654,7 +654,7 @@ assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="user
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, widget: widgets.TextInput({'maxlength': 20})});
     this.password = new fields.CharField({max_length: 10, widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -671,7 +671,7 @@ var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, label: 'Your username'});
     this.password1 = new fields.CharField({widget: widgets.PasswordInput});
     this.password2 = new fields.CharField({widget: widgets.PasswordInput, label: 'Password (again)'});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -695,7 +695,7 @@ assert(new Questions().as_p() === '<p><label for="id_q1">The first question:</la
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, label: ''});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -709,7 +709,7 @@ assert(p.as_ul() === '<li> <input maxlength="10" type="text" name="username" id=
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, label: null});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -730,7 +730,7 @@ assert(p.as_ul() === '<li><label for="id_username">Username:</label> <input maxl
 var FavoriteForm = function() {
     this.color = new fields.CharField({label: 'Favorite color?'});
     this.animal = new fields.CharField({label: 'Favorite animal'});
-    
+
     forms.Form.apply(this, arguments);
 };
 FavoriteForm.prototype.__proto__ = forms.Form.prototype;
@@ -743,7 +743,7 @@ var f = new FavoriteForm({auto_id: false, label_suffix: ''});
 assert(f.as_ul() === '<li>Favorite color? <input type="text" name="color" /></li>\n<li>Favorite animal <input type="text" name="animal" /></li>\n');
 
 // Initial data ################################################################
-// 
+//
 // You can specify initial data for a field by using the 'initial' argument to a
 // Field class. This initial data is displayed when a Form is rendered with *no*
 // data. It is not displayed when a Form is rendered with any data (including an
@@ -752,7 +752,7 @@ assert(f.as_ul() === '<li>Favorite color? <input type="text" name="color" /></li
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, initial: 'django'});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -774,7 +774,7 @@ assert(p.errors.dict['username'].list[0] === 'This field is required.');
 assert(!p.is_valid());
 
 // # Dynamic initial data ########################################################
-// 
+//
 // The previous technique dealt with "hard-coded" initial data, but it's also
 // possible to specify initial data after you've already created the Form class
 // (i.e., at runtime). Use the 'initial' parameter to the Form constructor. This
@@ -783,7 +783,7 @@ assert(!p.is_valid());
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -810,7 +810,7 @@ assert(!p.is_valid());
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, initial: 'django'});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -819,13 +819,13 @@ var p = new UserRegistration({initial: {username: 'stephanie'}, auto_id: false})
 assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="stephanie" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
 
 // Callable initial data ########################################################
-// 
+//
 // The previous technique dealt with raw values as initial data, but it's also
 // possible to specify callable data.
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -858,7 +858,7 @@ assert(!p.is_valid());
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, initial: initial_django});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -867,13 +867,13 @@ var p = new UserRegistration({initial: {username: initial_stephanie}, auto_id: f
 assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" value="stephanie" /></li>\n<li>Password: <input type="password" name="password" /></li>\n');
 
 // 	# Help text ###################################################################
-// 
+//
 // You can specify descriptive text for a field by using the 'help_text' argument
 // to a Field class. This help text is displayed when a Form is rendered.
 var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, help_text: 'e.g., user@example.com'});
     this.password = new fields.CharField({widget: widgets.PasswordInput, help_text: 'Choose wisely.'});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -890,7 +890,7 @@ var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10, help_text: 'e.g., user@example.com'});
     this.password = new fields.CharField({widget: widgets.PasswordInput});
     this.next = new fields.CharField({widget: widgets.HiddenInput, initial:'/', help_text: 'Redirect destination'});
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -899,7 +899,7 @@ var p = new UserRegistration({auto_id: false});
 assert(p.as_ul() === '<li>Username: <input maxlength="10" type="text" name="username" /> e.g., user@example.com</li>\n<li>Password: <input type="password" name="password" /><input type="hidden" name="next" value="/" /></li>\n');
 
 // Subclassing forms ###########################################################
-// 
+//
 // You can subclass a Form to add fields. The resulting form subclass will have
 // all of the fields of the parent Form, plus whichever fields you define in the
 // subclass.
@@ -909,7 +909,7 @@ var Person = function() {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
     this.birthday = new fields.DateField();
-    
+
     forms.Form.apply(this, arguments);
 };
 Person.prototype.__proto__ = forms.Form.prototype;
@@ -946,7 +946,7 @@ var b = new Beatle({auto_id: false});
 assert(b.as_ul() === '<li>First name: <input type="text" name="first_name" /></li>\n<li>Last name: <input type="text" name="last_name" /></li>\n<li>Birthday: <input type="text" name="birthday" /></li>\n<li>Instrument: <input type="text" name="instrument" /></li>\n<li>Haircut type: <input type="text" name="haircut_type" /></li>\n');
 
 //# Forms with prefixes #########################################################
-// 
+//
 // Sometimes it's necessary to have multiple forms display on the same HTML page,
 // or multiple copies of the same form. We can accomplish this with form prefixes.
 // Pass the keyword argument 'prefix' to the Form constructor to use this feature.
@@ -957,7 +957,7 @@ var Person = function() {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
     this.birthday = new fields.DateField();
-    
+
     forms.Form.apply(this, arguments);
 };
 Person.prototype.__proto__ = forms.Form.prototype;
@@ -1029,12 +1029,12 @@ var Person = function() {
     this.first_name = new fields.CharField();
     this.last_name = new fields.CharField();
     this.birthday = new fields.DateField();
-    
+
     var that = this;
     this.add_prefix = function(field_name) {
         return that.prefix ? (that.prefix + '-prefix-' + field_name) : field_name;
     };
-    
+
     forms.Form.apply(this, arguments);
 };
 Person.prototype.__proto__ = forms.Form.prototype;
@@ -1055,13 +1055,13 @@ assert(p.cleaned_data['last_name'] === 'Lennon');
 assert(p.cleaned_data['birthday'] == new Date(1940, 9, 9));
 
 //# Forms with NullBooleanFields ################################################
-// 
+//
 // NullBooleanField is a bit of a special case because its presentation (widget)
 // is different than its data. This is handled transparently, though.
 var Person = function() {
     this.name = new fields.CharField();
     this.is_cool = new fields.NullBooleanField();
-    
+
     forms.Form.apply(this, arguments);
 };
 Person.prototype.__proto__ = forms.Form.prototype;
@@ -1085,12 +1085,12 @@ var p = new Person({data: {'name': 'Joe', 'is_cool': false}, auto_id: false});
 assert(p.get_bound_field('is_cool').toString() === '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
 
 //# Forms with FileFields ################################################
-// 
+//
 // FileFields are a special case because they take their data from the request.FILES,
 // not request.POST.
 var FileForm = function() {
     this.file1 = new fields.FileField();
-    
+
     forms.Form.apply(this, arguments);
 };
 FileForm.prototype.__proto__ = forms.Form.prototype;
@@ -1118,7 +1118,7 @@ var UserRegistration = function() {
     this.username = new fields.CharField({max_length: 10});
     this.password1 = new fields.CharField({widget: widgets.PasswordInput});
     this.password2 = new fields.CharField({widget: widgets.PasswordInput});
-    
+
     var that = this;
     this.clean = function() {
         if (that.cleaned_data['password1'] && that.cleaned_data['password2'] && that.cleaned_data['password1'] !== that.cleaned_data['password2']) {
@@ -1126,7 +1126,7 @@ var UserRegistration = function() {
         }
         return that.cleaned_data
     };
-    
+
     forms.Form.apply(this, arguments);
 };
 UserRegistration.prototype.__proto__ = forms.Form.prototype;
@@ -1157,7 +1157,7 @@ assert(my_function('POST', {'username': 'mike', password1: 'secret', password2: 
 var SongForm = function() {
     this.artist = new fields.CharField();
     this.name = new fields.CharField();
-    
+
     forms.Form.apply(this, arguments);
 };
 SongForm.prototype.__proto__ = forms.Form.prototype;
