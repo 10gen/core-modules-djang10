@@ -169,10 +169,16 @@ IntegerField.prototype = {
         // convert to string and trim
         value = value.toString().replace(/^\s+/, '').replace(/\s+$/, '');
 
-        if (/^-?\d+$/.test(value)) {
+		var match;
+        if (/^-?\d+(E\d+)?$/.test(value)) {
             value = Number(value);
-        }
-        else {
+        } else if ((match = /^-?\d*\.(\d+)E(\d+)/.exec(value))) {
+			if (Number(match[2]) >= match[1].length) {
+				value = Number(value);
+			} else {
+				throw new util.ValidationError(this.error_messages['invalid']);
+			}
+		} else {
             throw new util.ValidationError(this.error_messages['invalid']);
         }
 
