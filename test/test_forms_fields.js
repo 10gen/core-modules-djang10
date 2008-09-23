@@ -71,15 +71,13 @@ assert(f.clean(42) == 42);
 test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '3.14');
 test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '3.14E1');
 test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '300.1415E3');
-// Waiting on BUG 852
-//assert(f.clean('1E1') === 10);
-//assert(f.clean('1.1E1') === 11);
-//assert(f.clean('1.1E2') === 110);
+assert(f.clean('1E1') === 10);
+assert(f.clean('1.1E1') === 11);
+assert(f.clean('1.1E2') === 110);
 test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '1.1E0');
 test.assertThrows(new util.ValidationError("Enter a whole number."), f, fields.IntegerField.prototype.clean, '1.01E1');
 assert(f.clean('111111111111111111111111111') === 1.111111111111111E26);
-// Waiting on BUG 852
-//assert(f.clean(111111111111111111111111111) === f.clean('111111111111111111111111111'));
+assert(f.clean(111111111111111111111111111) === f.clean('111111111111111111111111111'));
 assert(f.clean('1 ') == 1);
 assert(f.clean(' 1') == 1);
 assert(f.clean(' 1 ') == 1);
