@@ -626,7 +626,7 @@ BooleanField.prototype = {
     widget: widgets.CheckboxInput,
 
     clean: function(value) {
-        if (value === 'false') {
+        if (typeof value === 'string' && value === 'false') {
             value = false;
         } else {
             value = util.bool(value);
@@ -720,11 +720,8 @@ NullBooleanField.prototype = {
     widget: widgets.NullBooleanSelect,
 
     clean: function(value) {
-        if (value === true) {
-            return true;
-        }
-        if (value === false) {
-            return false;
+        if (typeof value === 'boolean') {
+            return value;
         }
         return null;
     }
