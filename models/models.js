@@ -1,12 +1,12 @@
 /**
 *      Copyright (C) 2008 10gen Inc.
-*  
+*
 *    Licensed under the Apache License, Version 2.0 (the "License");
 *    you may not use this file except in compliance with the License.
 *    You may obtain a copy of the License at
-*  
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*  
+*
 *    Unless required by applicable law or agreed to in writing, software
 *    distributed under the License is distributed on an "AS IS" BASIS,
 *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,20 +35,20 @@ models = {};
 // The only validation comes on a call to validate.
 models.new_model = function(props) {
     props = props || {};
-    
+
     // Get the collection name to use for the generated Class
     var collection_name = null;
     if (props.Meta && props.Meta.db_table) {
         collection_name = props.Meta.db_table;
-    }    
-    
+    }
+
     var Class = function(params) {
         // Class level stuff. TODO: this should be moved to the prototype...
         // initialize _meta
         this._meta = {};
         this._meta._fields = {};
         this._meta._field_values = {};
-        
+
         for (var key in props) {
             // Meta is a special case - just merge the properties into _meta
             if (key === 'Meta') {
@@ -57,44 +57,44 @@ models.new_model = function(props) {
                 // set the field name
                 props[key].set_attributes_from_name(key);
                 this._meta._fields[key] = props[key];
-                
+
                 //getter and setter
                 // we do a little bit of indirection here to deal with the closure properly
-                Class.prototype.__defineGetter__(key, 
-                    (function(key) { 
+                Class.prototype.__defineGetter__(key,
+                    (function(key) {
                         return function() {
                             return this._meta._fields[key].value_from_object(this._meta._field_values);
                         };
                     }) (key));
-                Class.prototype.__defineSetter__(key, 
-                    (function(key) { 
+                Class.prototype.__defineSetter__(key,
+                    (function(key) {
                         return function(val) {
                             this._meta._fields[key].save_form_data(this._meta._field_values, val);
                         };
                     }) (key));
-                
+
             } else {
                 this[key] = props[key];
             }
         }
-        
+
         // Actual instance level stuff
         params = params || {};
 
         for (var key in this._meta._fields) {
             var field = this._meta._fields[key];
             var value = null;
-            
+
             if (field['attname'] in params) {
                 value = params[field['attname']];
                 delete params[field['attname']];
             } else {
                 value = field.get_default();
             }
-            
+
             this[field['attname']] = value;
         }
-        
+
         for (var key in params) {
             if (key in this) {
                 this[key] = params[key];
@@ -119,31 +119,31 @@ models.new_model = function(props) {
                     }
                 }
             }
-            
+
             to_save._postLoad_map = {};
             // Now save the meta stuff
             for (var key in this._meta._fields) {
                 var field = this._meta._fields[key];
-                
+
                 // Make sure there are no name conflicts
                 if (field.column in to_save) {
                     throw new ModelError("column name matches existing property name: " + field.column);
                 }
-                
+
                 to_save[field.column] = this[field.attname];
                 to_save._postLoad_map[field.column] = field.attname;
             }
             this.__collection.save(to_save);
             this._id = to_save._id;
         },
-       
+
         validate: function () {
             var error_dict = {};
             var invalid = {};
-            
+
             for (var key in this._meta._fields) {
                 var f = this._meta._fields[key];
-                
+
                 try {
                     this[f.attname] = f.to_javascript(this[f.attname]);
                 } catch (e if e instanceof validators.ValidationError) {
@@ -151,24 +151,24 @@ models.new_model = function(props) {
                     invalid[f.name] = true;
                 }
             }
-            
+
             for (var key in this._meta._fields) {
                 var f = this._meta._fields[key];
-                
+
                 if (f.name in invalid) {
                     continue;
                 }
-                
+
                 var errors = f.validate_full(this[f.attname], this);
-                
+
                 if (errors.length > 0) {
                     error_dict[f.name] = errors;
                 }
             }
-            
+
             return error_dict;
         },
-        
+
         postLoad: function() {
             for (var key in this._postLoad_map) {
                 var swap = this[key];
@@ -177,11 +177,11 @@ models.new_model = function(props) {
             }
             delete this._postLoad_map;
         },
-        
+
         // Don't mess with this stuff. It is used to setup the __collection variable.
         // __setup_collection gets called from install.js
         __collection_name: collection_name,
-        __setup_collection: function(app_prefix, collection_name) {      
+        __setup_collection: function(app_prefix, collection_name) {
             if (this.__collection_name) {
                 this.prototype.__collection = db[app_prefix][this.__collection_name];
             } else {
@@ -191,17 +191,17 @@ models.new_model = function(props) {
             this.prototype.__collection.setConstructor(Class);
         }
     }
-    
+
     if (!props.id) {
         Class.prototype.__defineGetter__("id", function() {
             return this._id;
         });
     }
-    
+
     Class.prototype.__defineGetter__("objects", function() {
         return Class.prototype.__collection;
     });
-    
+
     return Class;
 }
 
@@ -223,7 +223,7 @@ var Field = models.Field = function(params) {
         'validator_list': null,
         'verbose_name': null,
     }.merge(params || {});
-    
+
     this['name'] = params['name'];
     this['blank'] = params['blank'];
     this['db_column'] = params['db_column'];
@@ -246,7 +246,7 @@ Field.prototype = {
     to_javascript: function(value) {
         return value;
     },
-    
+
     validate_full: function(field_data, all_data) {
         if (!this.blank && !field_data) {
             return ['This field is required.'];
@@ -258,10 +258,10 @@ Field.prototype = {
         }
         return [];
     },
-    
+
     // Subclasses should throw validators.ValidationError on an error
     validate: function() {},
-    
+
     set_attributes_from_name: function(n) {
         this['name'] = n;
         this.attname = this.get_attname();
@@ -270,15 +270,15 @@ Field.prototype = {
             this.verbose_name = n.replace(/_/g, ' ')
         }
     },
-    
+
     get_attname: function() {
         return this['name'];
     },
-    
+
     has_default: function() {
         return !(this['default'] instanceof NOT_PROVIDED);
     },
-    
+
     get_default: function() {
         if (this.has_default()) {
             if (this['default'] instanceof Function) {
@@ -288,11 +288,11 @@ Field.prototype = {
         }
         return "";
     },
-    
+
     save_form_data: function(instance, data) {
         instance[this.attname] = data;
     },
-    
+
     value_from_object: function(obj) {
         return obj[this.attname];
     }
@@ -302,13 +302,13 @@ var BooleanField = models.BooleanField = function(params) {
     params = {
         blank: true
     }.merge(params || {});
-    
+
     Field.apply(this, [params]);
 };
 
 BooleanField.prototype = {
     __proto__: Field.prototype,
-    
+
     to_javascript: function(value) {
         if (value === true || value === 't' || value === 'true' || value === '1') {
             return true;
@@ -330,7 +330,7 @@ var CharField = models.CharField = function(params) {
 
 CharField.prototype = {
     __proto__: Field.prototype,
-    
+
     to_javascript: function(value) {
         if (value === null) {
             value = "";
