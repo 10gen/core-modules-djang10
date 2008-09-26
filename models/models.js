@@ -310,10 +310,13 @@ BooleanField.prototype = {
     __proto__: Field.prototype,
 
     to_javascript: function(value) {
-        if (value === true || value === 't' || value === 'true' || value === '1') {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (value === 't' || value === 'true' || value === '1') {
             return true;
         }
-        if (value === false || value === 'f' || value === 'false' || value === '0') {
+        if (value === 'f' || value === 'false' || value === '0') {
             return false;
         }
         throw new validators.ValidationError("This value must be either true or false.");
