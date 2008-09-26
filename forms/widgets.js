@@ -1,12 +1,12 @@
 /**
 *      Copyright (C) 2008 10gen Inc.
-*  
+*
 *    Licensed under the Apache License, Version 2.0 (the "License");
 *    you may not use this file except in compliance with the License.
 *    You may obtain a copy of the License at
-*  
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*  
+*
 *    Unless required by applicable law or agreed to in writing, software
 *    distributed under the License is distributed on an "AS IS" BASIS,
 *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,23 +30,23 @@ Widget.prototype = {
     render: function(name, value, attrs){
         throw new util.NotImplementedError();
     },
-    
+
     build_attrs: function(extra_attrs, kwargs) {
         var attrs = this.attrs.merge(kwargs || {});
         return attrs.merge(extra_attrs || {});
     },
-    
+
     value_from_datadict: function(data, files, name){
         return data && data[name];
     },
-    
+
     _has_changed: function(initial, data) {
         var data_value = (data == null) ? '' : data;
         var initial_value = (initial == null) ? '' : initial;
-        
+
         return (data_value != initial_value);
     },
-    
+
     id_for_label: function(id){
         return id;
     }
@@ -59,20 +59,20 @@ var Input = widgets.Input = function(attrs) {
 
 Input.prototype = {
     __proto__: Widget.prototype,
-    
+
     input_type: null,
-    
+
     render: function(name, value, attrs){
         var type = this.input_type;
-        
+
         // we might want the value to be false, so check for undefined not negation
         value = typeof(value) != 'undefined' ? value : '';
-        
+
         attrs = this.build_attrs(attrs, { type: type, name: name });
-        
-        if (value != '' && value != null) 
+
+        if (value != '' && value != null)
             attrs["value"] = value;
-        
+
         return djang10.mark_safe('<input ' + util.flatatt(attrs) + ' />');
     }
 };
@@ -85,14 +85,14 @@ var TextInput = widgets.TextInput = function(attrs) {
 TextInput.prototype = {
     __proto__ : Input.prototype,
     _use_max_length_attr: true,
-    
+
     input_type: "text"
 };
 
 // PasswordInput -------------------
 var PasswordInput = widgets.PasswordInput = function(attrs, render_value) {
     Input.call(this, attrs || {});
-    
+
     //render_value defaults to true
     this.render_value = typeof(render_value) != 'undefined' ? render_value : true;
 };
@@ -100,7 +100,7 @@ var PasswordInput = widgets.PasswordInput = function(attrs, render_value) {
 PasswordInput.prototype = {
     __proto__ : Input.prototype,
     _use_max_length_attr: true,
-    
+
     input_type: "password",
 
     render: function(name, value, attrs) {
@@ -128,12 +128,12 @@ var Textarea = widgets.Textarea = function(attrs) {
 
 Textarea.prototype = {
     __proto__: Widget.prototype,
-    
+
     render: function(name, value, attrs) {
         if (value == null)
             value = '';
         var final_attrs = this.build_attrs(attrs, {name: name});
-        return djang10.mark_safe(util.simplePythonFormat('<textarea %s>%s</textarea>', 
+        return djang10.mark_safe(util.simplePythonFormat('<textarea %s>%s</textarea>',
                 util.flatatt(final_attrs), util.conditional_escape(value)));
     }
 }
@@ -145,7 +145,7 @@ var MultipleHiddenInput = widgets.MultipleHiddenInput = function(attrs, choices)
 
 MultipleHiddenInput.prototype = {
     __proto__: HiddenInput.prototype,
-    
+
     render: function(name, value, attrs, choices) {
         if (value == null)
             value = [];
@@ -164,18 +164,18 @@ var FileInput = widgets.FileInput = function(attrs) {
 
 FileInput.prototype = {
     __proto__: Input.prototype,
-    
+
     input_type: "file",
     needs_multipart_form: true,
-    
+
     render: function(name, value, attrs) {
         return Input.render.call(this, name, null, attrs);
     },
-    
+
     value_from_datadict: function(data, files, name) {
         return files && files[name];
     },
-    
+
     _has_changed: function(initial, data) {
         if (data == null)
             return false;
@@ -185,24 +185,24 @@ FileInput.prototype = {
 
 var CheckboxInput = widgets.CheckboxInput = function(attrs, check_test) {
     Widget.call(this, attrs || {});
-    
+
     // Use passed in value or else just identity.
     this.check_test = check_test || function(x) {return x;};
 };
 
 CheckboxInput.prototype = {
     __proto__: Widget.prototype,
-    
+
     render: function(name, value, attrs) {
         var final_attrs = this.build_attrs(attrs || {}, {type: 'checkbox', name: name});
-        
+
         var result;
         try {
             result = this.check_test(value);
         }
         catch(e) {
             result = false;
-        } 
+        }
         if (result) {
             final_attrs['checked'] = 'checked';
         }
@@ -211,7 +211,7 @@ CheckboxInput.prototype = {
         }
         return djang10.mark_safe("<input " + util.flatatt(final_attrs) + " />");
     },
-    
+
     value_from_datadict: function(data, files, name) {
         if (!data) {
             return null;
@@ -221,7 +221,7 @@ CheckboxInput.prototype = {
         }
         return Widget.value_from_datadict.call(this, data, files, name);
     },
-    
+
     _has_changed: function(initial, data) {
         return util.bool(initial) != util.bool(data);
     }
@@ -234,7 +234,7 @@ var Select = widgets.Select = function(attrs, choices) {
 
 Select.prototype = {
     __proto__: Widget.prototype,
-    
+
     render: function(name, value, attrs, choices) {
         if (value == null)
             value = '';
@@ -246,15 +246,15 @@ Select.prototype = {
         output += '</select>';
         return djang10.mark_safe(output);
     },
-    
+
     render_options: function(choices, selected_choices) {
         var render_option = function(option_value, option_label) {
             option_value = option_value.toString();
             var selected_html = (selected_choices.indexOf(option_value) > -1) ? ' selected="selected"' : '';
-            return util.simplePythonFormat('<option value="%s"%s>%s</option>', 
+            return util.simplePythonFormat('<option value="%s"%s>%s</option>',
                     content.HTML.escape(option_value), selected_html, util.conditional_escape(option_label));
         };
-        
+
         for (var i in selected_choices) {
             selected_choices[i] = selected_choices[i].toString();
         }
@@ -262,7 +262,7 @@ Select.prototype = {
         choices = this.choices.merge(choices);
         for (var option_value in choices) {
             var option_label = choices[option_value];
-            
+
             if (typeof(option_label) == "object") {
                 output += '<optgroup label="' + content.HTML.escape(option_value) + '">\n';
                 for (var option in option_label) {
@@ -285,7 +285,7 @@ var NullBooleanSelect = widgets.NullBooleanSelect = function(attrs) {
 
 NullBooleanSelect.prototype = {
     __proto__: Select.prototype,
-    
+
     render: function(name, value, attrs, choices) {
         switch (value) {
             case true:
@@ -302,10 +302,10 @@ NullBooleanSelect.prototype = {
         }
         return Select.render.call(this, name, value, attrs || null, choices || {});
     },
-    
+
     value_from_datadict: function(data, files, name) {
         var value = data && data[name];
-        
+
         switch (value) {
             case true:
             case '2':
@@ -317,7 +317,7 @@ NullBooleanSelect.prototype = {
                 return '1';
         }
     },
-    
+
     _has_changed: function(initial, data) {
         return util.bool(initial) != util.bool(data);
     }
@@ -329,7 +329,7 @@ var SelectMultiple = widgets.SelectMultiple = function(attrs, choices) {
 
 SelectMultiple.prototype = {
     __proto__: Select.prototype,
-    
+
     render: function(name, value, attrs, choices) {
         if (value == null)
             value = [];
@@ -341,7 +341,7 @@ SelectMultiple.prototype = {
         output += '</select>';
         return djang10.mark_safe(output);
     },
-    
+
     _has_changed: function(initial, data) {
         if (initial == null)
             initial = [];
@@ -379,11 +379,11 @@ RadioInput.prototype = {
         var choice_label = util.conditional_escape(this.choice_label);
         return djang10.mark_safe(util.simplePythonFormat('<label%s>%s %s</label>', label_for, this.tag(), choice_label));
     },
-    
+
     is_checked: function() {
         return this.value == this.choice_value;
     },
-    
+
     tag: function() {
         if (typeof(this.attrs.id) != 'undefined') {
             this.attrs.id += "_" + this.index;
@@ -407,7 +407,7 @@ RadioFieldRenderer.prototype = {
     toString: function() {
         return this.render();
     },
-    
+
     render: function() {
         var inner = "";
         var inputs = this.radio_inputs;
@@ -443,8 +443,8 @@ RadioSelect.prototype = {
     __proto__: Select.prototype,
 
     renderer: RadioFieldRenderer,
-    
-    get_renderer: function(name, value, attrs, choices) {        
+
+    get_renderer: function(name, value, attrs, choices) {
         if (value == null) {
             value = '';
         }
@@ -453,11 +453,11 @@ RadioSelect.prototype = {
         choices = this.choices.merge(choices || {});
         return new this.renderer(name, str_value, final_attrs, choices);
     },
-    
+
     render: function(name, value, attrs, choices) {
         return this.get_renderer(name, value, attrs, choices).render();
     },
-    
+
     id_for_label: function(id_) {
         if (id_) {
             id_ += '_0';
@@ -472,15 +472,15 @@ var CheckboxSelectMultiple = widgets.CheckboxSelectMultiple = function() {
 
 CheckboxSelectMultiple.prototype = {
     __proto__: SelectMultiple.prototype,
-    
+
     render: function(name, value, attrs, choices) {
         if (value == null) {
             value = "";
         }
         var has_id = util.bool(attrs && attrs['id']);
-        
+
         var final_attrs = this.build_attrs(attrs, {name: name});
-        
+
         var output = '<ul>\n';
         for (var j in value) {
             value[j] = value[j].toString();
@@ -490,7 +490,7 @@ CheckboxSelectMultiple.prototype = {
         for (var option_value in choices) {
             var option_label = choices[option_value];
             var label_for;
-            
+
             if (has_id) {
                 final_attrs['id'] = attrs['id'] + '_' + i;
                 label_for = ' for="' + final_attrs['id'] + '"';
@@ -498,19 +498,19 @@ CheckboxSelectMultiple.prototype = {
             else {
                 label_for = '';
             }
-            
+
             var cb = new CheckboxInput(final_attrs, function(val) {return (value.indexOf(val) != -1)});
             option_value = option_value.toString();
             var rendered_cb = cb.render(name, option_value);
             option_label = util.conditional_escape(option_label);
             output += util.simplePythonFormat('<li><label%s>%s %s</label></li>\n', label_for, rendered_cb, option_label);
-            
+
             i++;
         }
         output += '</ul>';
         return djang10.mark_safe(output);
     },
-    
+
     id_for_label: function(id_) {
         if (id_)
             id_ += '_0';
@@ -525,13 +525,13 @@ var MultiWidget = widgets.MultiWidget = function(widgets, attrs) {
         }
     }
     this.widgets = widgets;
-    
+
     Widget.call(this, attrs);
 };
 
 MultiWidget.prototype = {
     __proto__: Widget.prototype,
-    
+
     render: function(name, value, attrs) {
         if (!(value instanceof Array)) {
             value = this.decompress(value);
@@ -542,18 +542,18 @@ MultiWidget.prototype = {
         var i = 0;
         for (widget in this.widgets) {
             var widget_value = value[i];
-            
+
             if (id_) {
                 final_attrs['id'] = id_ + '_' + i;
             }
-            
+
             output.push(this.widgets[widget].render(name + '_' + i, widget_value, final_attrs));
-            
+
             i++;
         }
         return djang10.mark_safe(this.format_output(output));
     },
-    
+
     value_from_datadict: function(data, files, name) {
         var vals = [];
         var i = 0;
@@ -563,7 +563,7 @@ MultiWidget.prototype = {
         }
         return vals;
     },
-    
+
     _has_changed: function(initial, data) {
         if (initial == null) {
             initial = [];
@@ -573,7 +573,7 @@ MultiWidget.prototype = {
         } else {
             initial = this.decompress(initial);
         }
-        
+
         for (var x = 0; x < data.length; x++) {
             if (this.widgets[x]._has_changed(initial[x], data[x])) {
                 return true;
@@ -581,7 +581,7 @@ MultiWidget.prototype = {
         }
         return false;
     },
-    
+
     format_output: function(rendered_widgets) {
         var output = '';
         for (var i in rendered_widgets) {
@@ -589,11 +589,11 @@ MultiWidget.prototype = {
         }
         return output;
     },
-    
+
     decompress: function(value) {
         throw util.NotImplementedError('Subclasses must implement this method.');
     },
-    
+
     id_for_label: function(id_) {
         if (id_)
             id_ += '_0';
@@ -615,7 +615,7 @@ var SplitDateTimeWidget = widgets.SplitDateTimeWidget = function(attrs) {
 
 SplitDateTimeWidget.prototype = {
     __proto__: MultiWidget.prototype,
-    
+
     decompress: function(value) {
         if (value) {
             return [value.strftime("%Y-%d-%m"), value.strftime("%H:%M:%S")];
@@ -626,7 +626,7 @@ SplitDateTimeWidget.prototype = {
 
 var DateTimeInput = widgets.DateTimeInput = function(attrs, format) {
     Input.call(this);
-    
+
     if (format) {
         this.format = format;
     }
@@ -634,10 +634,10 @@ var DateTimeInput = widgets.DateTimeInput = function(attrs, format) {
 
 DateTimeInput.prototype = {
     __proto__: Input.prototype,
-    
+
     input_type: 'text',
     format: '%Y-%m-%d %H:%M:%S',
-    
+
     render: function(name, value, attrs) {
         if (value == null) {
             value = '';
@@ -645,7 +645,7 @@ DateTimeInput.prototype = {
         else if (value['strftime']) {
             value = value.strftime(this.format);
         }
-        
+
         return Input.render.call(this, name, value, attrs);
     }
 };
