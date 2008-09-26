@@ -70,8 +70,9 @@ Input.prototype = {
 
         attrs = this.build_attrs(attrs, { type: type, name: name });
 
-        if (value != '' && value != null)
+        if (!((typeof value === 'string' && value === '') || (typeof value === 'object' && value === null))) {
             attrs["value"] = value;
+        }
 
         return djang10.mark_safe('<input ' + util.flatatt(attrs) + ' />');
     }
@@ -206,7 +207,7 @@ CheckboxInput.prototype = {
         if (result) {
             final_attrs['checked'] = 'checked';
         }
-        if (value !== '' && value !== true && value !== false && value !== null) {
+        if (value !== '' && typeof value !== 'boolean' && value !== null) {
             final_attrs['value'] = value.toString();
         }
         return djang10.mark_safe("<input " + util.flatatt(final_attrs) + " />");
@@ -287,18 +288,10 @@ NullBooleanSelect.prototype = {
     __proto__: Select.prototype,
 
     render: function(name, value, attrs, choices) {
-        switch (value) {
-            case true:
-            case '2':
-                value = '2';
-                break;
-            case false:
-            case '3':
-                value = '3';
-                break;
-            default:
-                value = '1';
-                break;
+        if (typeof value === 'boolean') {
+            value = value ? '2' : '3';
+        } else if (value !== '2' && value !== '3') {
+            value = '1';
         }
         return Select.render.call(this, name, value, attrs || null, choices || {});
     },
@@ -306,16 +299,13 @@ NullBooleanSelect.prototype = {
     value_from_datadict: function(data, files, name) {
         var value = data && data[name];
 
-        switch (value) {
-            case true:
-            case '2':
-                return '2';
-            case false:
-            case '3':
-                return '3';
-            default:
-                return '1';
+        if (typeof value === 'boolean') {
+            value = value ? '2' : '3';
+        } else if (value !== '2' && value !== '3') {
+            value = '1';
         }
+        
+        return value;
     },
 
     _has_changed: function(initial, data) {
