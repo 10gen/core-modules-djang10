@@ -1,12 +1,12 @@
 /**
 *      Copyright (C) 2008 10gen Inc.
-*  
+*
 *    Licensed under the Apache License, Version 2.0 (the "License");
 *    you may not use this file except in compliance with the License.
 *    You may obtain a copy of the License at
-*  
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*  
+*
 *    Unless required by applicable law or agreed to in writing, software
 *    distributed under the License is distributed on an "AS IS" BASIS,
 *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,20 +41,20 @@ var strptime = util.strptime = function(string, format) {
     if (typeof(format) != 'string') {
         throw new ValueError("Second argument to strptime must be of type string.");
     }
-    
+
     // The regular expression to match on given the format code
     var re = "^";
-    
+
     // Code to be run to populate the new date object after matching
     var functions = [];
-    
+
     // Number of match groups so far
     // Start at 1, since re.exec(...)[0] is the entire match, not the first substring
     var num_groups = 1;
-    
+
     // Are we currently in a directive (%x)
     var directive = false;
-    
+
     // Generate the re and code
     for (var i = 0; i < format.length; i++) {
         var ch = format.charAt(i);
@@ -74,22 +74,22 @@ var strptime = util.strptime = function(string, format) {
             re += ch;
         }
     }
-    
+
     re += "$";
-    
+
     // Attempt to match
     var match = RegExp(re).exec(string);
     if (match == null) {
         throw new ValueError("Date string did not match format.");
     }
-    
+
     // Defaults come from python strptime
     var date = new Date(1900, 0, 1, 0, 0, 0);
     // Manipulate the date based on the callbacks generated
     for (var i = 0; i < functions.length; i++) {
         functions[i](match, date);
     }
-    
+
     return date;
 };
 
@@ -263,9 +263,9 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
     if (typeof(msg) != 'string') {
         throw new FormatterError('Message must be of type string.');
     }
-    
+
     var re = /\%(?:\((\w+)\))?([\w\%])/;
-    
+
     var getReplacement = function (v, code) {
         if (v == null)
             return null;
@@ -281,23 +281,23 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
             case "f":
                 return Number(v).toString();
             case "%":
-                return "%"
+                return "%";
             default:
                 throw new FormatterError('Unexpected conversion type: ' + code)
         }
     };
-    
+
     var arg_index = 1;
     var named = false;
-    
+
     while ((match = re.exec(msg)) != null) {
         if (match[2] == "%")
             arg_index --;
 
         if (arg_index >= arguments.length)
             throw new FormatterError('Not enough arguments to replace all conversion specifiers.');
-        
-        // named replacement    
+
+        // named replacement
         if(match[1]) {
             var repl = getReplacement(vals[match[1]], match[2]);
             if (repl == null)
@@ -309,12 +309,12 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
             repl = getReplacement(arguments[arg_index], match[2]);
             arg_index++;
         }
-        
+
         msg = msg.replace(re, repl);
     }
     if (arg_index < arguments.length && !named)
         throw new FormatterError('Too many arguments.');
-    
+
     return msg;
 }
 
@@ -322,12 +322,12 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
 var flatatt = util.flatatt = function(dict) {
     var buffer = "";
     var isFirst = true;
-    
+
     for(var key in dict) {
         if(!isFirst)
             buffer += ' ';
         buffer += (key + '=' + '"' + content.HTML.escape(dict[key]) + '"');
-        
+
         isFirst = false;
     }
     return buffer;
@@ -345,11 +345,11 @@ var ErrorDict = util.ErrorDict = function(dict) {
 
 ErrorDict.prototype = {
     _dontEnum: true,
-    
+
     toString: function() {
         return this.as_ul();
     },
-    
+
     as_ul: function() {
         if (this.dict.keySet().length == 0)
             return '';
@@ -359,7 +359,7 @@ ErrorDict.prototype = {
         }
         return djang10.mark_safe('<ul class="errorlist">' + inner + '</ul>');
     },
-    
+
     as_text: function() {
         if (this.dict.keySet().length == 0)
             return '';
@@ -397,11 +397,11 @@ var ErrorList = util.ErrorList = function(list) {
 
 ErrorList.prototype = {
     _dontEnum: true,
-    
+
     toString: function() {
         return this.as_ul();
     },
-    
+
     as_ul: function() {
         if (this.list.length == 0)
             return '';
@@ -410,7 +410,7 @@ ErrorList.prototype = {
             inner += '<li>' + content.HTML.escape(this.list[i]) + '</li>';
         return djang10.mark_safe('<ul class="errorlist">' + inner + '</ul>');
     },
-    
+
     as_text: function() {
         if (this.list.length == 0)
             return '';
@@ -419,7 +419,7 @@ ErrorList.prototype = {
             out += '* ' + this.list[i] + '\n';
         return out;
     },
-    
+
     extend: function(list) {
         if (typeof(list) == 'undefined' || typeof(list) != 'object') {
             throw new Error("Invalid argument to extend.");
