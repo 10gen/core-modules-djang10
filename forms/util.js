@@ -283,7 +283,7 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
             case "%":
                 return "%";
             default:
-                throw new FormatterError('Unexpected conversion type: ' + code)
+                throw new FormatterError('Unexpected conversion type: ' + code);
         }
     };
 
@@ -302,7 +302,7 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
             var repl = getReplacement(vals[match[1]], match[2]);
             if (repl == null)
                 throw new FormatterError('Could not find mapping for key: ' + match[1]);
-            named = true
+            named = true;
         }
         // anonymous replacement
         else {
