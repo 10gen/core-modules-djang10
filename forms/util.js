@@ -279,7 +279,10 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
             case "d":
                 return parseInt(v).toString();
             case "f":
-                return Number(v).toString();
+                if (/^\d+/.test(v)) {
+                    return Number(/^(\d+(?:\.\d+)?)/.exec(v)[1]).toString();
+                }
+                return null;
             case "%":
                 return "%";
             default:
