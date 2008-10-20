@@ -1,12 +1,12 @@
 /**
 *      Copyright (C) 2008 10gen Inc.
-*  
+*
 *    Licensed under the Apache License, Version 2.0 (the "License");
 *    you may not use this file except in compliance with the License.
 *    You may obtain a copy of the License at
-*  
+*
 *       http://www.apache.org/licenses/LICENSE-2.0
-*  
+*
 *    Unless required by applicable law or agreed to in writing, software
 *    distributed under the License is distributed on an "AS IS" BASIS,
 *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -301,6 +301,7 @@ var w = new widgets.NullBooleanSelect();
 assert(w.render('is_cool', true).toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
 assert(w.render('is_cool', false).toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
 assert(w.render('is_cool', null).toString() == '<select name="is_cool">\n<option value="1" selected="selected">Unknown</option>\n<option value="2">Yes</option>\n<option value="3">No</option>\n</select>');
+assert(w.render('is_cool', 2).toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
 assert(w.render('is_cool', '2').toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2" selected="selected">Yes</option>\n<option value="3">No</option>\n</select>');
 assert(w.render('is_cool', '3').toString() == '<select name="is_cool">\n<option value="1">Unknown</option>\n<option value="2">Yes</option>\n<option value="3" selected="selected">No</option>\n</select>');
 
@@ -415,7 +416,7 @@ var MyRenderer = function() {
 
 MyRenderer.prototype = {
     __proto__: widgets.RadioFieldRenderer.prototype,
-    
+
     render: function() {
         var out = "";
         for (var choice in this.radio_inputs) {
@@ -431,7 +432,7 @@ assert(w.render('beatle', 'G', {}, choices).toString() == '<label><input type="r
 // Or you can use custom RadioSelect fields that use your custom renderer.
 var CustomRadioSelect = function() {
     this.renderer = MyRenderer;
-    
+
     widgets.RadioSelect.call(this);
 };
 
@@ -523,13 +524,13 @@ var MyMultiWidget = function() {
 
 MyMultiWidget.prototype = {
     __proto__: widgets.MultiWidget.prototype,
-    
+
     decompress: function(value) {
         if (value)
             return value.split('__');
         return ['', ''];
     },
-    
+
     format_output: function(rendered_widgets) {
         var output = "";
         for (w in rendered_widgets) {

@@ -290,7 +290,10 @@ NullBooleanSelect.prototype = {
     render: function(name, value, attrs, choices) {
         if (typeof value === 'boolean') {
             value = value ? '2' : '3';
-        } else if (value !== '2' && value !== '3') {
+        } else if (typeof value !== 'string' && typeof value !== 'undefined') {
+            value = value.toString();
+        }
+        if (value !== '2' && value !== '3') {
             value = '1';
         }
         return Select.render.call(this, name, value, attrs || null, choices || {});
@@ -301,10 +304,13 @@ NullBooleanSelect.prototype = {
 
         if (typeof value === 'boolean') {
             value = value ? '2' : '3';
-        } else if (value !== '2' && value !== '3') {
+        } else if (typeof value !== 'string' && typeof value !== 'undefined') {
+            value = value.toString();
+        }
+        if (value !== '2' && value !== '3') {
             value = '1';
         }
-        
+
         return value;
     },
 
