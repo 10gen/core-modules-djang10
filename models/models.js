@@ -313,10 +313,10 @@ BooleanField.prototype = {
         if (typeof value === 'boolean') {
             return value;
         }
-        if (value === 't' || value === 'true' || value === '1') {
+        if (value === 't' || value === 'true' || value === '1' || value === 1) {
             return true;
         }
-        if (value === 'f' || value === 'false' || value === '0') {
+        if (value === 'f' || value === 'false' || value === '0' || value === 0) {
             return false;
         }
         throw new validators.ValidationError("This value must be either true or false.");
