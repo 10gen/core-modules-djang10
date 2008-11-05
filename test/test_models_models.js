@@ -59,7 +59,7 @@ assert(Article.objects.find().count() === 2);
 assert(Article.objects.find()[0].some_field === 10);
 assert(Article.objects.find()[1].some_field === 20);
 
-assert(Article.__collection.toString() === "testapp.Article");
+assert(Article.__collection.getFullName() === "test.testapp.Article");
 
 // Try using a different collection name
 var Article = models.new_model({
@@ -95,7 +95,7 @@ assert(Article.objects.find().count() === 2);
 assert(Article.objects.find()[0].some_field === 10);
 assert(Article.objects.find()[1].some_field === 20);
 
-assert(Article.__collection.toString() === "testapp.Custom");
+assert(Article.__collection.getFullName() === "test.testapp.Custom");
 
 // Test having a property named id
 var Article = models.new_model({
