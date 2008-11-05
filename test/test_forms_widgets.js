@@ -456,7 +456,11 @@ assert(r.radio_inputs[1].name == 'beatle');
 assert(r.radio_inputs[1].value == 'J');
 assert(r.radio_inputs[1].choice_value == 'P');
 assert(r.radio_inputs[1].choice_label == 'Paul');
-test.assertException(r.radio_inputs[10], toString);
+
+function dummy () {
+    r.radio_inputs[10].toString();
+}
+test.assertException(null, dummy);
 
 // # Choices are escaped correctly
 var w = new widgets.RadioSelect();
