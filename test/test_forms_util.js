@@ -76,7 +76,7 @@ test.assertThrows(new util.FormatterError('Unexpected conversion type: c'), null
 assert(util.simplePythonFormat('%s %s', 'hello', 'world') == 'hello world');
 assert(util.simplePythonFormat('%(verb)s %(adverb)s', {verb: 'run', adverb: 'quickly'}) == 'run quickly');
 assert(util.simplePythonFormat('what about a number like %d?', 5) == 'what about a number like 5?');
-assert(util.simplePythonFormat('%d %i %s %r %f %%', 5, '24.00', 10, {hello: 'world'}, 5.01) == "5 24 10 { \"hello\" : \"world\"  }\n 5.01 %");
+assert(util.simplePythonFormat('%d %i %s %r %f %%', 5, '24.00', 10, {hello: 'world'}, 5.01) == "5 24 10 {\n    \"hello\" : \"world\"\n} 5.01 %");
 assert(util.simplePythonFormat('%(adverb)s %(verb)s', {test: 'test', verb: 'run', adverb: 'quickly'}, 4) == 'quickly run');
 assert(util.simplePythonFormat('%s', '') == '');
 assert(util.simplePythonFormat('%d', '25is a number') == '25');

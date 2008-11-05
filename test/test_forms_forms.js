@@ -1146,7 +1146,7 @@ var my_function = function(method, post_data) {
 
 assert(my_function('GET', {}) === '<form action="" method="post">\n<table>\n<tr><th>Username:</th><td><input maxlength="10" type="text" name="username" /></td></tr>\n<tr><th>Password1:</th><td><input type="password" name="password1" /></td></tr>\n<tr><th>Password2:</th><td><input type="password" name="password2" /></td></tr>\n</table>\n<input type="submit" />\n</form>\n');
 assert(my_function('POST', {'username': 'this-is-a-long-username', 'password1': 'foo', 'password2': 'bar'}) === '<form action="" method="post">\n<table>\n<tr><td colspan="2"><ul class="errorlist"><li>Please make sure your passwords match.</li></ul></td></tr>\n<tr><th>Username:</th><td><ul class="errorlist"><li>Ensure this value has at most 10 characters (it has 23).</li></ul><input maxlength="10" type="text" name="username" value="this-is-a-long-username" /></td></tr>\n<tr><th>Password1:</th><td><input type="password" name="password1" value="foo" /></td></tr>\n<tr><th>Password2:</th><td><input type="password" name="password2" value="bar" /></td></tr>\n</table>\n<input type="submit" />\n</form>\n');
-assert(my_function('POST', {'username': 'mike', password1: 'secret', password2: 'secret'}) === 'VALID: { "username" : "mike" , "password1" : "secret" , "password2" : \n"secret"  }\n');
+assert(my_function('POST', {'username': 'mike', password1: 'secret', password2: 'secret'}) === 'VALID: {\n    "username" : "mike" ,\n    "password1" : "secret" ,\n    "password2" : "secret"\n}');
 
 // The empty_permitted attribute
 
