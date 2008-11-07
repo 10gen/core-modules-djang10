@@ -314,8 +314,6 @@ var simplePythonFormat = util.simplePythonFormat = function (msg, vals) {
         }
 
         msg = msg.replace(re, repl);
-        re.lastIndex = 0;
-
     }
     if (arg_index < arguments.length && !named)
         throw new FormatterError('Too many arguments.');
