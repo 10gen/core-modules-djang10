@@ -74,6 +74,7 @@ test.assertThrows(new util.FormatterError('Not enough arguments to replace all c
 test.assertThrows(new util.FormatterError('Could not find mapping for key: dog'), null, util.simplePythonFormat, '%(cat)s and %(dog)s', {cat: "tom", mouse: "jerry"});
 test.assertThrows(new util.FormatterError('Unexpected conversion type: c'), null, util.simplePythonFormat, 'hello %c', 'd');
 assert(util.simplePythonFormat('%s %s', 'hello', 'world') == 'hello world');
+assert(util.simplePythonFormat('run %(adverb)s', {verb: 'run', adverb: 'quickly'}) == 'run quickly');
 assert(util.simplePythonFormat('%(verb)s %(adverb)s', {verb: 'run', adverb: 'quickly'}) == 'run quickly');
 assert(util.simplePythonFormat('what about a number like %d?', 5) == 'what about a number like 5?');
 assert(util.simplePythonFormat('%d %i %s %r %f %%', 5, '24.00', 10, {hello: 'world'}, 5.01) == "5 24 10 {\n    \"hello\" : \"world\"\n} 5.01 %");
